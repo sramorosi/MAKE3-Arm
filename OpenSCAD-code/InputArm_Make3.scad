@@ -1,9 +1,11 @@
 // Input Arm Assembly
 //  Design for Human Hand to drive a Robot Arm
-//  last modified November 2022 by SrAmo
+//  last modified May 2023 by SrAmo
 //
-//  To make printable models find "FOR_PRINT" and remove * suffix, 
-//     then F6 & Export .stl
+//  To make STL models for 3D printing follow these steps:
+//  find "FOR PRINT" and remove * (disable) suffix, 
+//     then render the part (F6) (this may take some time)
+//        then  Export as STL (F7)
 
 /* Animation Commands to create an orbital fly-around:
 $vpr = [100, 0,$t * 360];   // view point rotation (spins the part)
@@ -11,6 +13,8 @@ $vpt = [0,0,50];    // view point translation
 $vpf = 70;          // view point field of view
 $vpd = 180;         // view point distance
 */
+
+// Parameters for Customizer:
 // Joint A angle
 AA = 5; // [0:170.0]
 // Joint B angle
@@ -46,8 +50,6 @@ widthAB = 15; // mm
 
 // A joint shift Z (up), mm
 A_joint_Z = 25; 
-// A joint shift Y (fwd), mm, match Large Arm
-A_joint_y = 0;
 // A joint shift X (lateral), mm
 A_joint_X = 4;
 
@@ -69,16 +71,14 @@ Y_INNER_EXTRA = 0.4*DIA_OUTER_LUGS;
 
 DIA_POT_SHAFT = 6.4; 
 
-//################### PART LIB FUNCTIONS AND MODULES COPY, FOR THINGIVERSE
+//################### PART LIB FUNCTIONS AND MODULES
 module washer(d=20,t=2,d_pin=10,center=true){
     // model washer on xy plane at 0,0,0 of radius r
     // t is thickness (centered about z=0)
 
     difference(){
         cylinder(t,d=d,center=center);  // outside
-        
-        // subtract bore
-        cylinder(3*t,d=d_pin,center=true);
+        cylinder(3*t,d=d_pin,center=true);  // subtract bore
     };
 }
 *washer($fn=50);  // DO NOT PRINT
@@ -94,14 +94,10 @@ module rounded_cube(size=[20,30,10],r=5,center=true) {
     z=center ? 0 : size[2]/2;
 
     hull() {
-        translate([xp,yp,z])
-            cylinder(h=size[2],r=r,center=true);
-        translate([xp,yn,z])
-            cylinder(h=size[2],r=r,center=true);
-        translate([xn,yp,z])
-            cylinder(h=size[2],r=r,center=true);
-        translate([xn,yn,z])
-            cylinder(h=size[2],r=r,center=true);       
+        translate([xp,yp,z]) cylinder(h=size[2],r=r,center=true);
+        translate([xp,yn,z]) cylinder(h=size[2],r=r,center=true);
+        translate([xn,yp,z]) cylinder(h=size[2],r=r,center=true);
+        translate([xn,yn,z]) cylinder(h=size[2],r=r,center=true);       
     }  
 }
 *rounded_cube(center=false,$fn=48);   // DO NOT PRINT
@@ -110,7 +106,7 @@ lenPin=7; // P090 electrical pin length constant
 L_pot_shaft = 13.1;  // P090 shaft length above the body
 
 module P090L_pot (negative=false) {
-    // units are in metric
+    // units are mm
     // The P090L (Style L) has the three pins off of the side
     // Solder the wires to the pins (need solid connection)
     // Cut off connectors to reduce installation volume
@@ -164,6 +160,7 @@ module P090L_pot (negative=false) {
 *P090L_pot(negative=true);  // DO NOT PRINT
 
 //######################################################## //
+
 module pot_joint(lug_two = true) {
     // Model of Potentiometer holder
     difference () {
@@ -343,9 +340,6 @@ module AB_Arm_Assy(len=100){
 *AB_Arm_model(len=lenAB);  // FOR_PRINT
 *rotate([0,0,90]) AB_Arm_model2(len=0);  // FOR_PRINT
 
-// Angle for add-on pot lug screws
-ang_add = 64;
-
 module BC_Arm_model(len=100,width=10) {
     difference() {
         union() {
@@ -363,19 +357,13 @@ module BC_Arm_model(len=100,width=10) {
             *translate([len,width*3/4,-THK_INNER_LUGS/2-.1]) 
                 rotate([0,0,-90]) pot_joint(lug_two = true);
         }
-        // remove hole for wire
-        //translate([len-20,5,10]) cylinder(h=20,r=2,center=true,$fn=FACETS);
-        // screw holes to hold add-on to BC arm
-        *translate([len,width*3/4,10])
-            rotate([0,0,180-ang_add/4]) 
-                Rotation_Pattern(number=2,radius=DIA_OUTER_LUGS/2.5,total_angle=ang_add)
-                    cylinder(h=5,d=2.5,center=true,$fn=FACETS);
-
     }
 }
 *BC_Arm_model(len=lenBC,width=widthAB); // FOR PRINT 
-
+/* NOT PRESENTLY USED
 module add_on_pot_joint() {
+    // Angle for add-on pot lug screws
+    ang_add = 64;
     color("Peru") {
         // Potentiometer holder
         difference () {
@@ -401,36 +389,15 @@ module add_on_pot_joint() {
 }
 *add_on_pot_joint();  // FOR PRINT
 *rotate([0,0,90]) C_End_Knob_model(notch_rotation=-90);
-
+*/
 // BC Assembly
 module BC_Assy(C_angle=0) {
     // DRAW THE BC ARM 
     color("lightblue",1) BC_Arm_model(len=lenBC,width=widthAB);
-    
-    /*
-    translate([lenBC,widthAB*3/4,-4]) rotate([0,0,-90])
-        Pot_Cover_model();
-    
-    // DRAW THE C END
-    translate([lenBC,widthAB*3/4,-4]) {
-        rotate([0,0,C_angle]) 
-            color("blue",1) C_End_Knob_model(notch_rotation=-90);
-    
-        rotate([0,0,-90]) P090L_pot(negative=false);
-        // SECOND, ADD ON KNOB
-        translate([0,0,12]) color("green",1) C_End_Knob_model(notch_rotation=-90);
-        
-        translate([0,0,26.5]) rotate([180,0,90]) {
-            P090L_pot(negative=false);
-            add_on_pot_joint();
-            Pot_Cover_model();
-
-        }
-    } */
-}
+    }
 *BC_Assy(90);  // Not for print
 
-module Input_Arm_Assembly(B_angle = 0,C_angle=0){
+module Input_Arm_Assembly(B_angle = 0){
     // Display the Input Arm Assembly from the AB arm and on
     // A joint is at [0,0], Second joint is at [length,0]
     
@@ -439,81 +406,9 @@ module Input_Arm_Assembly(B_angle = 0,C_angle=0){
     translate([lenAB,0,4]) rotate([180,0,90]) Pot_Cover_model();
     translate([lenAB,0,4]) rotate([180,0,90]) P090L_pot(negative=false);
     
-    translate([lenAB,0,-10]) rotate([0,0,B_angle]) BC_Assy(C_angle);
+    translate([lenAB,0,-10]) rotate([0,0,B_angle]) BC_Assy(0);
 }
 *Input_Arm_Assembly();  // Not for print
-
-module base_turntable_model () {
-    // Model of turntable Base, for the input arm
-
-    // Potentiometer support for Joint A
-    translate([-8,A_joint_y,A_joint_Z+THK_TURNTABLE/2]) rotate([90,0,90]) pot_joint(lug_two = true);
-    *translate([-1,A_joint_y,THK_TURNTABLE/2+2]) cube([24,18,4],center=true);
-
-    difference() {
-        cylinder(h=THK_TURNTABLE,d=DIA_TURNTABLE,center=true,$fn=FACETS); // turntable
-        
-        // remove turntable T potentiometer interface
-        translate([0,0,-7]) P090L_pot(negative=true);
-        
-        // Wire access hole
-        translate([0,-14,0]) cylinder(h=THK_TURNTABLE*3,d=16,center=true,$fn=FACETS);
-    }
-}
-*base_turntable_model(); // FOR_PRINT
-
-module base_model (part_one = true) {
-    // Model of Base, for the input arm (THE FIXED PART)
-    // TWO PART MODEL. 1 = MAIN BASE,  2 = SCREW ON TOP
-    
-    bottom_h = 16;
-    top_h = 4;
-    add_d = 12;
-    
-    if (part_one) {
-        difference() { 
-            union () { // PART 1
-                // Potentiometer support for Joint T
-                translate([0,0,-bottom_h+6]) pot_joint(lug_two = false);
-            
-                translate([0,0,-bottom_h/2-THK_TURNTABLE/2])
-                    washer(d=DIA_TURNTABLE+add_d,t=bottom_h,d_pin=DIA_TURNTABLE-10,$fn=FACETS); // bottom layer
-                
-                translate([0,0,-bottom_h])
-                    washer(d=DIA_TURNTABLE-8,t=6,d_pin=DIA_OUTER_LUGS-4,$fn=FACETS); // pot support
-            
-                // mid layer, outside of turn table
-                washer(d=DIA_TURNTABLE+add_d,t=THK_TURNTABLE+0.4,d_pin=DIA_TURNTABLE*1.01,$fn=FACETS); 
-            } // END UNION
-            
-            screw_holes(dia=2.5,height=10); // subtract top cap screw holes
-            // subtract a big hole for the wires
-            translate([-4,-30,-6]) rotate([90,0,0]) cylinder(h=46,r=12,center=true,$fn=60);
-        // bottom attach screw holes
-        translate([0,0,-20]) rotate([0,0,30]) Rotation_Pattern(number=4,radius=20,total_angle=360)
-                cylinder(h=THK_TURNTABLE*3,d=3,center=true,$fn=12);
-            }
-            
-    } else { // PART TWO = top layer
-        difference() {  // top cover
-            translate([0,0,top_h/2+THK_TURNTABLE/2+0.2])
-                washer(d=DIA_TURNTABLE+add_d,t=top_h,d_pin=DIA_TURNTABLE-10,$fn=FACETS); 
-            screw_holes(dia=3,height=top_h*4);
-            translate([0,0,top_h*2]) screw_holes(dia=5.8,height=top_h);
-        }
-    }
-
-    module screw_holes (dia=2.5,height=4) {
-        // top cover screw holes
-        rotate([0,0,90]) Rotation_Pattern(number=5,radius=DIA_TURNTABLE/1.8,total_angle=360)
-                cylinder(h=height,d=dia,center=true,$fn=12);
-    }
-        
-}
-// bottom
-*base_model(part_one=true);  // FOR_PRINT
-// top
-*base_model(part_one=false); // FOR_PRINT
 
 module base_assy(T_angle=0) {
     // Fixed part
@@ -523,18 +418,6 @@ module base_assy(T_angle=0) {
     rotate([0,0,T_angle]) {
         translate([0,0,A_joint_Z]) rotate([0,90,0]) joint_visuals(cover=true,cut=false); // not for print
     }
-
-    /* Fixed models
-    color("blue") base_model (part_one=true);
-    color("lightblue") base_model (part_one=false);
-    translate([0,0,-9]) P090L_pot(negative=false);
-
-    // Moving turntable models
-    rotate([0,0,T_angle]) {
-        base_turntable_model ();
-        translate([-5,0,A_joint_Z+THK_TURNTABLE/2]) 
-            rotate([-90,180,-90])  cluster();
-    } */
 }
 *base_assy(T_angle = 0);  // not for print
 
@@ -548,34 +431,16 @@ module draw_assy (A_angle=0,B_angle=0,T_angle = 0) {
     //  This module is not for printing.
     // Input parameters are the angle from the input arm
     //  A and B are the angles of the potentiometers
-    // The C angle is calculated so that the claw is vertical pointing down
-    //  D is the claw angle
     //  T is the turntable angle
-    // A larger wireframe robot arm is drawn with the computed angles
-    Arob = A_angle;  // A robot arm = A input arm
-    Brob = (Arob+B_angle < -45) ? -45 : Arob+B_angle; // B robot arm = A + B input arm
-    Crob = (Brob > 45) ? Brob - 135 : -90; // limit the claw from contacting the arm
-    //echo(Brob=Brob,Crob=Crob);
-    
-    a=[20,0,A_joint_Z]; // location of A
-
-    // calculate b and c positions from angles
-    br=[0,lenAB*cos(Arob),lenAB*sin(Arob)];  // B relative location
-    b=a+br; // B absolute
-    cr = [0,cos(Brob)*lenBC,sin(Brob)*lenBC];
-    c=b+cr;  // C absolute
-    
-    // IF C IS TOO LOW, MODIFY KINEMATICS TO PREVENT ARM FROM RUNNING INTO THE GROUND
-    angles = (c[2] > A_joint_Z) ? [Arob,Brob] : inverse_arm_kinematics([0,c[1],0],lenAB=lenAB,lenBC=lenBC); 
 
     base_assy(T_angle = T_angle);
     
     rotate([0,0,T_angle]) // T rotation
-        translate([A_joint_X,A_joint_y,A_joint_Z+THK_TURNTABLE/2]) // translate to A joint location
+        translate([A_joint_X,0,A_joint_Z+THK_TURNTABLE/2]) // translate to A joint location
             rotate([A_angle,0,0]) // A rotation
                 rotate([90,0,90]) 
                 // Draw the AB arm assembly
-                    Input_Arm_Assembly(B_angle,C_angle=Crob);
+                    Input_Arm_Assembly(B_angle);
 }
 
 *draw_assy(A_angle=160,B_angle=-165,T_angle=TT);
@@ -594,4 +459,3 @@ if (display_assy) {
         P090L_pot(negative=false);
     }
 }    
-*translate([30,0,0]) rotate([0,90,90]) ruler(100);
