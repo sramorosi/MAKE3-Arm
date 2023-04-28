@@ -5,7 +5,7 @@ Use these documents to create the .stl (STL or stereolithography or Standard Tri
 
 Familiarity with OpenSCAD is required.
 
-To make STL models for 3D printing follow steps for each part to print:
+To make STL models for 3D printing follow these steps for each part to print:
 1. Find the line in the code that draws the part. Remove * (disable) suffix on the line.  Note:  These lines have // FOR PRINT at the end of the line.  You are toggling on and off the parts that you want to print using the *.  You will need to toggle off the Assembly.  Do not print Assemblies.
 2. Adjust parameter setting for printing, for example, set FACETS = 140, set display_assy = false.  The OpenSCAD Customizer is handy for this.
 3. Render the part (F6) Note: Rendering can take much longer than Preview (F5).  Look for the progress bar on the lower right.
