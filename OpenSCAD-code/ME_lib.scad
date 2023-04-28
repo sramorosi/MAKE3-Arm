@@ -131,13 +131,6 @@ let (b_ang = vt_long ? 0.1 : law_cosines(lenBC,lenAB,vt)-180 )
 //invAngles = inverse_arm_kinematics([346.41, 200, 200],200,400,100); // 346 = 400*cos(30)
 //echo(invAngles=invAngles);
 
-
-module draw_dummy_arm(a=[0,0,0],b=[0,0,100],c=[100,0,100],d=[100,0,0]) {
-    color("silver") pt_pt_cylinder (from=a,to=b, d = 2,$fn=12);
-    color("grey") pt_pt_cylinder (from=b,to=c, d = 2,$fn=12);
-    color("black") pt_pt_cylinder (from=c,to=d, d = 2,$fn=12);
-}
-
 // linear interpolation function
 // Returns the value between A and B given t between t_l and t_h
 function linear_interp (A,B,t,t_l,t_h) = (A+((t-t_l)/(t_h-t_l))*(B-A));
@@ -151,7 +144,6 @@ function dist_line_origin (p1=[1,1],p2=[0,2])=
 (p2[0]*p1[1]-p2[1]*p1[0])/norm([(p1[0]-p2[0]),(p1[1]-p2[1]),0]);
 
 function dist_line_pt (p1=[-5,5,0],p2=[0,5,0],pt=[10,0,0])=
-// removed abs
 ((p2[1]-p1[1])*pt[0]-(p2[0]-p1[0])*pt[1]+p2[0]*p1[1]-p2[1]*p1[0])/norm([(p1[0]-p2[0]),(p1[1]-p2[1]),0]);
 
 function ptpt_dist(p1=[-5,5,0],p2=[0,0,0])=
@@ -178,8 +170,7 @@ module draw_3d_list(the3dlist=[],size=10,dot_color="blue",value=[],idx=0) {
     // Note: that an undefined causes the recursion to stop
 }
 
-function larger(a=0,b=-1) =  abs(a) > abs(b) ? a : b ;
-// Simple function to return the value farthest from zero
+function larger(a=0,b=-1) =  abs(a) > abs(b) ? a : b ; // Simple function to return the value farthest from zero
 
 function largeInVector(vector,i=0) = 
 // Recursive function to return the value farthest from zero in a vector
@@ -202,7 +193,6 @@ module Margin_Safety(min,max,allowable,name="THING NAME") {
     // calculate Engineering Margin of Safety for "thing"
     // Two actual values can be provided, representing most negative and most pos
     // allowable = the allowable value
-    // Move this module to the force library
     MAX = max(abs(max),abs(min));
     MS = (allowable/MAX)-1;
     echo(name," MARGIN OF SAFETY ",MS=MS,MAX=MAX);
@@ -211,7 +201,6 @@ module Margin_Safety2(loads=[],allowable,name="THING NAME") {
     // calculate Engineering Margin of Safety for "thing"
     // Two actual values can be provided, representing most negative and most pos
     // allowable = the allowable value
-    // Move this module to the force library
     loadslen=len(loads);
     if (loadslen > 0) {
         //min_load=min(loads);
@@ -227,7 +216,6 @@ module Margin_Safety2(loads=[],allowable,name="THING NAME") {
 
 module force_arrow(from=[1,1,0],vec=[1,0,0],mag=10) {
     // draw a 3D force of length (mag), at (from), direction (vec)
-    //
     $fn = $preview ? 10 : 20;     // number of fragments
     if (norm(vec)>0.001) {  // check for non zero vector
         
@@ -265,7 +253,6 @@ module torque_arrow(to=[10,4,0],mag=10) {
     // draw a torque of diameter abs(mag), at to point
     // assumes torque is on x,y plane (for now)
     // arrowhead changes direction with sign of mag
-    //
     $fn = $preview ? 20 : 72;     // number of fragments
     d = abs(mag); // used to scale arrow
     sclr=d*.025; // scaler for arrow shaft
@@ -298,7 +285,7 @@ module torque_arrow(to=[10,4,0],mag=10) {
 function torsion_spr_torque(K,theta,theta_zero) =
     K*(theta-theta_zero);
 
-// Calculate the torque about a joint ptj caused by a pt1-pt2 spring
+// Calculate the torque about a joint pt caused by a pt1-pt2 spring
 // of spring constant K and free length freelen
 function spring_torque(pt1=[10,0,0],pt2=[10,10,0],ptj=[-10,0,0],K=1,freelen=1) = 
     let (arm = dist_line_pt(pt1,pt2,ptj)) // dist_line_pt in force_lib
