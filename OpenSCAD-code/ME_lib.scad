@@ -297,7 +297,7 @@ function spring_torque(pt1=[10,0,0],pt2=[10,10,0],ptj=[-10,0,0],K=1,freelen=1) =
 
 //This is used for rotational patterns. Child elements are rotated around zero
 module Rotation_Pattern(number=3,radius=20,total_angle=360) {
-  ang_inc = total_angle/number;
+  ang_inc = total_angle/(number-1);
   //echo(ang_inc=ang_inc);
   if (number>1 && radius > 0) {
       for(i = [0 : number-1 ] ) {
@@ -308,4 +308,4 @@ module Rotation_Pattern(number=3,radius=20,total_angle=360) {
       echo("INVALID ARGUMENTS IN Rotation_Pattern module");
   }
 }
-*Rotation_Pattern(5,30) cylinder(h=10,d=3,center=true);
+Rotation_Pattern(number=5,radius=30,total_angle=180) cylinder(h=10,d=3,center=true);
