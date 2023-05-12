@@ -193,7 +193,7 @@ module NonPotLug(thk=OUTER_LUG_THK,notch=false) {  // Model of Potentiometer hol
                 roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=thk,bore=POT_HOLE_DIA,$fn=FACETS);
             translate([-LUG_DIA/2,-FLAT_DIST,0]) cube([LUG_DIA,8.5,MAIN_LUG_THK],center=false);
             if (notch) translate([0,LUG_DIA/2.2,MAIN_LUG_THK]) rotate([90,0,0])
-            linear_extrude(2,convexity=10) polygon(points=[[1,0],[0,-1],[-1,0]]);
+            linear_extrude(3,convexity=10) polygon(points=[[1.5,0],[0,-1.2],[-1.5,0]]);
         }
         // remove screw holes
         screwHoles(dia=LUG_DIA,shrink=true);
@@ -276,7 +276,11 @@ module AB_Arm_Assy(len=100){
     translate([lenAB,0,5]) rotate([0,0,-90]) P090L_pot(negative=false);
 }
 *AB_Arm_Assy(len=lenAB); 
-
+module switch() {
+    translate([0,0,2]) cube([11.5,11.5,4],center=true);
+    translate([0,0,4]) cylinder(h=8,d=7,center=true);
+}
+*translate([lenBC+5,0,-1]) rotate([0,90,0]) switch();
 module BC_Arm_model(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
     angSin = asin(LUG_DIA/len);
@@ -290,12 +294,20 @@ module BC_Arm_model(len=100) {
         }
         
         // lug at extreme end.  To hold a push button switch
-        translate([len,0,-0]) rotate([0,0,-90-angSin]) 
+        translate([len,0,0]) rotate([0,0,-90-angSin]) 
             roundTopLug(dia=LUG_DIA*0.85,hgt=len+4,thk=MAIN_LUG_THK,bore=3,$fn=FACETS); 
+        translate([len,0,-1])
+            difference() {
+                cylinder(h=14,d=LUG_DIA*0.85,center=true,$fn=FACETS);
+                translate([6,0,]) cube([12,12,12],center=true);
+            }
+        *translate([0,LUG_DIA*1.5,-0]) rotate([0,0,-90-angSin]) 
+            cube([LUG_DIA*.85,len+LUG_DIA/2,MAIN_LUG_THK],center=false);
         
         translate([0,LUG_DIA,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA,center=true,$fn=FACETS);
     }
 }
+BC_Arm_model(len=lenBC);
 *rotate([180,0,0]) BC_Arm_model(len=lenBC); // Export as STL... F7 (quantity 1)
 
 module BC_Assy() {
@@ -393,12 +405,13 @@ module bumpyLug(thk=2,bumps=10) {
         // remove potentiometer interfaces
         translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
     }
-    BUMP_Y = LUG_DIA/2.5;  // bump, y location
+    BUMP_Y = LUG_DIA/2.8;  // bump, y location
     //BUMP_RAD = 1;
     BUMP_Z = thk;
-    Rotation_Pattern(number=bumps,radius=BUMP_Y,total_angle=180) {
+    ang_inc = 180/(bumps-1);
+    rotate([0,0,-ang_inc/2]) Rotation_Pattern(number=bumps+1,radius=BUMP_Y,total_angle=180+ang_inc) {
         translate([0,0,BUMP_Z]) rotate([90,0,90])
-            linear_extrude(1,convexity=10) polygon(points=[[1,0],[0,1],[-1,0]]);
+            linear_extrude(2.5,convexity=10) polygon(points=[[1.2,0],[0,1],[-1.2,0]]);
     }
 }
 module SelectorKnob(notch_rotation=0,thk=2,bumps=10) {
@@ -410,7 +423,7 @@ module SelectorKnob(notch_rotation=0,thk=2,bumps=10) {
                 }
             }
 }
-*SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS); // Export as STL... F7 (quantity 1)
+*SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS-1); // Export as STL... F7 (quantity 1)
 
 module bumpyBaseCover(thk=2,bumps=10) {
     BUMP_Y = LUG_DIA/1.5;  // bump, y location
@@ -424,16 +437,16 @@ module bumpyBaseCover(thk=2,bumps=10) {
 }
 *bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1); // Export as STL... F7 (quantity 1)
 
-*rotate([0,180,0]) NonPotLug(thk=1.5,notch=true); // Export as STL... F7 (quantity 1)
+*rotate([0,180,0]) NonPotLug(thk=1.3,notch=true); // Export as STL... F7 (quantity 1)
 
 module SelectorAssy(ang=0) {
     PotLug(); 
     translate([0,0,zbody]) P090L_pot(negative=false); 
-    translate([0,0,POT_LUG_THK]) NonPotLug(thk=1.5,notch=true); 
+    translate([0,0,POT_LUG_THK]) NonPotLug(thk=1.3,notch=true); 
     translate([0,0,-OUTER_LUG_THK]) 
         bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1);
     translate([0,0,MAIN_LUG_THK+LUG_Z]) 
-        SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS); 
+        SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS-1); 
 }
 if (display_selector) {
     difference() {

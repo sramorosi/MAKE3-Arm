@@ -9,6 +9,14 @@
  */
 use <Robot_Arm_Parts_lib.scad> // using inverse and other functions
 use <ME_lib.scad>  // Mechanical Engineering Library
+
+// Animation Commands to create an orbital fly-around:
+$vpr = [20,($t-0.5) * 30,90];   // view point rotation (spins the part)
+$vpt = [60,0,0];    // view point translation
+$vpf = 70;          // view point field of view
+$vpd = 140;         // view point distance
+//
+
 // use 140 for printing, 40 for display
 FACETS = 140; // [40,140]
 // Distance Servo Axis is along X axis (mm) 
@@ -18,7 +26,7 @@ D_FB_Y = 35;  // [5:1:60]
 // Distance from Finger Base (FB) to Distal Link along Y axis (mm)
 D_FB_DL_Y = 10;  // [5:1:15]
 // Distance between Servo Axis and Horn-Rod (horn Radius) (mm) 
-R_HORN = 17; // [10:1:30]
+HORN_RAD = 17; // [10:1:30]
 // Distance between Finger Base and Rod-connector (mm) 
 D_FINGER_ROD = 50; // [40:0.5:70]
 // Distance between Finger Base and Distal joint (mm) (L)
@@ -158,11 +166,11 @@ module draw_assy (angClaw=90,angRod=0,claw=10,rod=5,AY=0,Y2=10,L=120,RODS=0.9) {
 // Create HR (horn-rod) joint CIRCLE of points
 // LEFT CLAW
 leftPtHR = [ for (a = [-90+ROT_SVO : 180/steps : 90+ROT_SVO])
-    [R_HORN*cos(a)+D_SVO_CB,R_HORN*sin(a),0] ];
+    [HORN_RAD*cos(a)+D_SVO_CB,HORN_RAD*sin(a),0] ];
 //draw_3d_list(the3dlist=leftPtHR,size=2);
 // RIGHT CLAW
 rightPtHR = [ for (a = [270-ROT_SVO : -180/steps : 90-ROT_SVO])
-    [R_HORN*cos(a)+D_SVO_CB,R_HORN*sin(a),0] ];
+    [HORN_RAD*cos(a)+D_SVO_CB,HORN_RAD*sin(a),0] ];
 //mirror([0,1,0]) draw_3d_list(the3dlist=rightPtHR,dot_color="red",size=2);
 
 
@@ -204,14 +212,25 @@ range_ang = max(Ang_Error)-min(Ang_Error);
 //echo(offset_ang=offset_ang);
 //echo(range_ang=range_ang);
 
+module horn(len=20) {
+    color("GREY") difference() {
+        translate([-len/2,0,0]) simple_link (l=len,w=PIN_DIA*3,t=4,d=PIN_DIA);
+        cylinder(h=len,d=PIN_DIA*1.5,center=true);
+    }
+}
 
-module single_claw_assy() {
-    draw_assy(-1.91,-88.05,claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL,RODS=-0.9);
-    mirror([0,1,0]) draw_assy(-1.91,-88.05,claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL); 
+module single_claw_assy(servoAng=-60) {
+    // compute angles using inverse kinematics
+    abLeft=ik_xy([HORN_RAD*cos(servoAng)+D_SVO_CB,HORN_RAD*sin(servoAng)],D_FINGER_ROD,D_ROD,AY=D_FB_Y);
+    abRight=ik_xy([HORN_RAD*cos(-servoAng+180)+D_SVO_CB,HORN_RAD*sin(-servoAng+180)],D_FINGER_ROD,D_ROD,AY=D_FB_Y);
+
+    draw_assy(abLeft[0],abLeft[1],claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL,RODS=-0.9);
+    mirror([0,1,0]) draw_assy(abRight[0],abRight[1],claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL); 
     color("DodgerBlue") base(); 
-    //color("GREY") translate([0,0,-12]) pt_pt_bar(from=leftPtHR[0], to=leftPtHR[steps], d=4); // horn
+    translate([D_SVO_CB,0,-14]) rotate([0,0,servoAng]) horn(len=HORN_RAD*2); // horn
     translate([D_SVO_CB,0,-16]) servo_body();
 }
-single_claw_assy();
+*single_claw_assy(servoAng=-60);
+single_claw_assy(servoAng=($t-0.8)*90);
 
 translate([90,-25,-25]) color("yellow") cube(BLOCK);

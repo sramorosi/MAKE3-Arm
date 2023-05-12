@@ -9,5 +9,10 @@ This project is intended as a high school robotics level teaching tool to descri
 3. Principles of Statics (forces and torques/moments)
 4. Mechanical design of servo joints that provides strength and control (robust)
 
+## Claw Assembly OpenSCAD
+
+![Claw_Assy_FlyAround](/Images/Claw_Assy_FlyAround.gif)
+
+
 
 

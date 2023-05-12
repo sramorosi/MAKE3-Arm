@@ -112,7 +112,7 @@ module lug (r=1,w=3,h=2,t=.2,d=0) {
             cylinder (h=3*t,d=d,center=true);
     }
 }
-module simple_link (l=50,w=5,t=4,d=1,cored=2) {
+module simple_link (l=50,w=5,t=4,d=1,cored=0) {
     // Simple two force link, normal to xy plane, pointing x
     // l=Lenth, w=Width, t=Thickness, d=Pin bore Diameter, cored = Core diameter
     $fa=$preview ? 6 : 1; // minimum angle fragment
