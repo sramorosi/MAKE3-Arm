@@ -15,30 +15,38 @@ use <gears_involute.scad>  // Modified version of spur gears by Greg Frost
 use <arduino.scad>
 use <Claw_Assembly.scad>
 
-/* Animation Commands to create an orbital fly-around:
-$vpr = [100, 0,$t * 360];   // view point rotation (spins the part)
-$vpt = [0,0,260];    // view point translation
+// Animation Commands to create an orbital fly-around:
+$vpr = [70, 0,30];   // view point rotation (spins the part)
+$vpt = [290,0,170];    // view point translation
 $vpf = 70;          // view point field of view
-$vpd = 450;         // view point distance
-*/
+$vpd = 500;         // view point distance
+//
 
 // use 140 for printing, 40 for display
-FACETS = 40; // [40,140]
+FACETS = 100; // [40,140]
 
 // Number of position step in internal calculation
 steps = 40; // [2:1:200]
+
+ECHO_MOMENTS = false;
 // Joint A angle
-AA = 135; // [0:1:175]
+//AA = 135; // [0:1:175]
+AA=90*sin($t*180);  // for animation
 // Joint B angle
-BB = -100; // [-175:1:0]
+//BB = -100; // [-175:1:0]
+BB=-90*sin($t*180);  // for animation
 // Joint C angle
-CC = -120; // [-145:1:145]
-// Joint D angle
-DD = 0; // [-145:1:145]
+//CC = -120; // [-145:1:145]
+CC=AA+BB-90;
+echo(AA=AA,BB=BB,CC=CC);
 // Joint CLAW angle
 //CLAW = 20; // [-145:1:145]
 // Turntable angle
-TT = 0; // [-80:80]
+//TT = 0; // [-80:80]
+TT=60*sin($t*90);  // for animation
+// Joint D angle
+//DD = 0; // [-145:1:145]
+DD=TT+30; // for animation
 
 // length of A-B arm (mm)
 LEN_AB=350; 
@@ -509,7 +517,7 @@ module CalculateMoments(display=false) {
         draw_assy(angles[a][0],angles[a][1],angles[a][2],0,LEN_AB,LEN_BC,LEN_CD);
 
 }
-CalculateMoments();
+if(ECHO_MOMENTS) CalculateMoments();
 
 // Draw the steps, outside of force calculation module 
 *for (a = [0 : steps-1]) draw_assy(angles[a][0],angles[a][1],angles[a][2],0,LEN_AB,LEN_BC,LEN_CD);

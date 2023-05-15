@@ -9,20 +9,23 @@
 //        then  Export as STL (F7)
 use <ME_lib.scad> // contains forces, springs, MS modules and functions
 
-/* Animation Commands to create an orbital fly-around:
-$vpr = [100, 0,$t * 360];   // view point rotation (spins the part)
-$vpt = [0,0,50];    // view point translation
-$vpf = 70;          // view point field of view
+// Animation Commands to create an orbital fly-around:
+$vpr = [60, 0, -30];   // view point rotation (spins the part)
+$vpt = [-40,0,80];    // view point translation
+$vpf = 50;          // view point field of view
 $vpd = 180;         // view point distance
-*/
+//
 
 // Parameters for Customizer:
 // Joint A angle
-AA = 25; // [0:180.0]
+//AA = 25; // [0:180.0]
+AA = 90*sin($t*180);  // for animation
 // Joint B angle
-BB = -35; // [-170:1:0.0]
+//BB = -35; // [-170:1:0.0]
+BB = -80*sin($t*90);  // for animation
 // Turntable angle
-TT = 0; // [-90:90]
+//TT = 0; // [-90:90]
+TT = 60*sin($t*90);  // for animation
 // use 140 for printing, 40 for display
 FACETS = 40; // [40,140]
 
@@ -53,7 +56,7 @@ echo("Baby Arm lengths",SCALE=SCALE,lenAB=lenAB,lenBC=lenBC," mm");
 // A joint shift Z (up), mm
 A_joint_Z = 40; 
 // A joint shift X (lateral), mm
-A_joint_X = 1;
+A_joint_X = -9;
 
 // Lug Diameter, mm, used by many
 LUG_DIA = 22; 
@@ -164,16 +167,31 @@ module screwHoles(dia=15,shrink=false) { // pair of screw holes that hold the st
     translate([dia/2.8,-dia/2-4,0])  cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
     translate([-dia/2.8,-dia/2-4,0]) cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
 }
-module roundTopLug (dia=15,hgt=20,thk=5,bore=3) {
+module roundTopLug (dia=15,hgt=20,thk=5,bore=3) {  // Full round top, width = dia
     difference() {
-        translate([0,0,thk/2]) hull() {
-            cylinder(h=thk,d=dia,center=true);
-            translate([0,-hgt+1,0]) cube([dia,2,thk],center=true);
-        }
+        translate([0,0,thk/2])
+            hull() {
+                cylinder(h=thk,d=dia,center=true);
+                translate([0,-hgt/2,0]) cube([dia,hgt,thk],center=true);
+            }
         cylinder(h=4*thk,d=bore,center=true);  // remove bore
     }
 }
-*roundTopLug($fn=FACETS);
+*roundTopLug(dia=20,hgt=5,bore=0,$fn=FACETS);  // note result if hgt < dia/2
+
+module roundTopLugTwo (width=20,rad=2,hgt=8,thk=5,bore=3) { // Two radius round top
+    cylWidth = width/2 - rad;
+    difference() {
+        translate([0,0,thk/2])
+            hull() {
+                translate([cylWidth,0,0]) cylinder(h=thk,r=rad,center=true);
+                translate([-cylWidth,0,0]) cylinder(h=thk,r=rad,center=true);
+                translate([0,-hgt/2,0]) cube([width,hgt,thk],center=true);
+            }
+        cylinder(h=4*thk,d=bore,center=true);  // remove bore
+    }
+}
+*roundTopLugTwo(bore=0,$fn=FACETS);  // note result if hgt < dia/2
 
 module PotLug() {  // Model of Potentiometer holder
     color("blue") difference () {// Side that holds the POT
@@ -276,11 +294,24 @@ module AB_Arm_Assy(len=100){
     translate([lenAB,0,5]) rotate([0,0,-90]) P090L_pot(negative=false);
 }
 *AB_Arm_Assy(len=lenAB); 
-module switch() {
-    translate([0,0,2]) cube([11.5,11.5,4],center=true);
-    translate([0,0,4]) cylinder(h=8,d=7,center=true);
+
+module switch(negative = false) {  //12x12x5mm Mini/Micro/Small PCB Momentary Tactile Tact Push Button Switch
+    if (!negative) color("grey") {
+        translate([0,0,1.5]) cube([11.5,11.5,3],center=true);
+        translate([0,0,4]) cylinder(h=8,d=7,center=true);
+        translate([6,2.5,-2]) cube([1,1,5],center=true);
+        translate([6,-2.5,-2]) cube([1,1,5],center=true);
+        translate([-6,2.5,-2]) cube([1,1,5],center=true);
+        translate([-6,-2.5,-2]) cube([1,1,5],center=true);
+    } else {
+        translate([0,0,1.5]) cube([12,12,4],center=true);
+        translate([0,0,10]) cylinder(h=20,d=8.5,center=true);
+        translate([6,0,-5]) cube([2,8,12],center=true);
+        translate([-6,0,-5]) cube([2,8,12],center=true);
+    }
 }
-*translate([lenBC+5,0,-1]) rotate([0,90,0]) switch();
+//switch(true,$fn=FACETS);
+
 module BC_Arm_model(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
     angSin = asin(LUG_DIA/len);
@@ -293,26 +324,34 @@ module BC_Arm_model(len=100) {
             translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
         }
         
-        // lug at extreme end.  To hold a push button switch
-        translate([len,0,0]) rotate([0,0,-90-angSin]) 
-            roundTopLug(dia=LUG_DIA*0.85,hgt=len+4,thk=MAIN_LUG_THK,bore=3,$fn=FACETS); 
-        translate([len,0,-1])
+        // lug at extreme end.  To hold push button switch
+        translate([len,0,0]) 
             difference() {
-                cylinder(h=14,d=LUG_DIA*0.85,center=true,$fn=FACETS);
-                translate([6,0,]) cube([12,12,12],center=true);
-            }
-        *translate([0,LUG_DIA*1.5,-0]) rotate([0,0,-90-angSin]) 
-            cube([LUG_DIA*.85,len+LUG_DIA/2,MAIN_LUG_THK],center=false);
+                rotate([0,0,-90-angSin]) 
+                 roundTopLug(dia=LUG_DIA*0.85,hgt=len+4,thk=MAIN_LUG_THK,bore=SCREW_DIA,$fn=FACETS);
+                rotate([90,0,90]) translate([0,-1,3]) switch(true,$fn=FACETS);
+            } 
         
         translate([0,LUG_DIA,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA,center=true,$fn=FACETS);
     }
 }
-BC_Arm_model(len=lenBC);
+*BC_Arm_model(len=lenBC);
 *rotate([180,0,0]) BC_Arm_model(len=lenBC); // Export as STL... F7 (quantity 1)
+
+module BC_Arm_Cap() {
+    color("lightblue") difference() {
+        translate([0,0,4]) cylinder(h=8,d=LUG_DIA*0.85,center=true,$fn=FACETS);
+        rotate([90,0,90]) translate([0,1,3]) switch(true,$fn=FACETS);
+        cylinder(h=20,d=SCREW_DIA*.92,center=true,$fn=FACETS);
+    }
+}
+*rotate([180,0,0]) BC_Arm_Cap();  // Export as STL... F7 (quantity 1)
 
 module BC_Assy() {
     // DRAW THE BC ARM 
     translate([0,0,-OUTER_LUG_THK]) BC_Arm_model(len=lenBC);
+    translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
+    translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // switch
 }
 *BC_Assy();
 
@@ -330,7 +369,7 @@ module TA_Fitting() { // Complex part that connects Joint T to Joint A
     color("lime") {
         difference() {
             translate([0,0,2]) 
-                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA*1.,thk=MAIN_LUG_THK,bore=3,$fn=FACETS);
+                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA/2,thk=MAIN_LUG_THK,bore=3,$fn=FACETS);
             // remove potentiometer interface
             translate([0,0,-LUG_Z+2]) scale([1.02,1.02,1.02]) rotate([0,0,180]) 
                 P090L_pot(negative=true);
@@ -338,7 +377,8 @@ module TA_Fitting() { // Complex part that connects Joint T to Joint A
 
         translate([-1,0,A_joint_Z-MAIN_LUG_THK]) rotate([90,0,-90]) NonPotLug(); 
         
-        translate([-LUG_DIA/2,-LUG_DIA,2]) cube([LUG_DIA,11,20.5],center=false);
+        translate([LUG_DIA/2,-LUG_DIA+3,20.5/2+2]) rotate([0,90,180]) 
+            roundTopLugTwo (width=20.5,rad=3,hgt=8,thk=LUG_DIA,bore=0,$fn=FACETS);
     }
 }
 *rotate([0,-90,0]) TA_Fitting(); // Export as STL... F7 (quantity 1)
