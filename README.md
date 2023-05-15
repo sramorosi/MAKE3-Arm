@@ -16,6 +16,6 @@ This project is intended as a low cost teaching tool to describe how to design, 
 
 ![MAKE3-Arm-gif](/Images/MAKE3_Arm_FlyAround.gif)
 
-
+[Video of MAKE3 robot arm](https://www.wevideo.com/view/3040378114)
 
 
