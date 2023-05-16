@@ -43,15 +43,16 @@ D_ROD = 50; // [30:0.5:70]
 ROT_SVO = 0; // [-20:1:20]
 // Number of position steps, for arrays
 steps = 6;  // [1:1:100]
-//  Block Size
+//  Block Size (mm)
 BLOCK = 50; 
-
+// Finger thickness (mm)
 BAR_THK = 5;
+// Finger width (mm)
 BAR_HGT = 16;
-PIN_DIA = 2.6; // this is for Spring Steel Slotted Spring Pin, 5/64" Diameter
-
+// Hole size for Spring Steel Slotted Spring Pin, 5/64" Diameter
+PIN_DIA = 2.6; 
+// Rod thickness (mm)
 ROD_THK = 6;
-origin=[0,0,0];
 // conversions
 mm_inch = 1/25.4;
 
@@ -235,6 +236,6 @@ module single_claw_assy(servoAng=-60) {
     translate([D_SVO_CB,0,-16]) servo_body();
 }
 *single_claw_assy(servoAng=-60);
-single_claw_assy(servoAng=($t-0.8)*90);
+single_claw_assy(servoAng=($t-0.8)*90); // used with animation
 
 translate([90,-25,-25]) color("yellow") cube(BLOCK);
