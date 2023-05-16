@@ -1,4 +1,4 @@
-// Input Arm Assembly
+// Input Control Arm Assembly and Selector Control assembly
 //  Design for Human Hand to control a Robot Arm
 //  last modified May 2023 by SrAmo
 // The parts are designed to not require support material when 3D printing.
@@ -22,7 +22,7 @@ $vpd = 180;         // view point distance
 AA = 90*sin($t*180);  // for animation
 // Joint B angle
 //BB = -35; // [-170:1:0.0]
-BB = -80*sin($t*90);  // for animation
+BB = 90*sin($t*180);  // for animation
 // Turntable angle
 //TT = 0; // [-90:90]
 TT = 60*sin($t*90);  // for animation

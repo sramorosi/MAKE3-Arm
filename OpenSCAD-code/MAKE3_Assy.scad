@@ -12,15 +12,18 @@ use <ME_lib.scad> // contains forces, springs, MS modules and functions
 include <Part-Constants.scad>
 use <Robot_Arm_Parts_lib.scad>
 use <gears_involute.scad>  // Modified version of spur gears by Greg Frost
-use <arduino.scad>
 use <Claw_Assembly.scad>
 
-// Animation Commands to create an orbital fly-around:
-$vpr = [70, 0,30];   // view point rotation (spins the part)
-$vpt = [290,0,170];    // view point translation
-$vpf = 70;          // view point field of view
-$vpd = 500;         // view point distance
-//
+/* Animation Commands to create an orbital fly-around:
+// view point rotation (spins the part)
+$vpr = [70, 0,30];   
+// view point translation
+$vpt = [290,0,170];    
+// view point field of view
+$vpf = 70;      
+// view point distance
+$vpd = 500;         
+*/
 
 // use 140 for printing, 40 for display
 FACETS = 100; // [40,140]
@@ -28,25 +31,26 @@ FACETS = 100; // [40,140]
 // Number of position step in internal calculation
 steps = 40; // [2:1:200]
 
-ECHO_MOMENTS = false;
+// Output the moment calculation in the error log window
+ECHO_MOMENTS = true;
 // Joint A angle
-//AA = 135; // [0:1:175]
-AA=90*sin($t*180);  // for animation
+AA = 135; // [0:1:175]
+//AA=90*sin($t*180);  // for animation
 // Joint B angle
-//BB = -100; // [-175:1:0]
-BB=-90*sin($t*180);  // for animation
+BB = -100; // [-175:1:0]
+//BB=-90*sin($t*180);  // for animation
 // Joint C angle
-//CC = -120; // [-145:1:145]
-CC=AA+BB-90;
-echo(AA=AA,BB=BB,CC=CC);
+CC = -120; // [-145:1:145]
+//CC=AA+BB-90;
+//echo(AA=AA,BB=BB,CC=CC);
 // Joint CLAW angle
-//CLAW = 20; // [-145:1:145]
+CLAW = 20; // [-90:5:90]
 // Turntable angle
-//TT = 0; // [-80:80]
-TT=60*sin($t*90);  // for animation
+TT = 0; // [-80:80]
+//TT=60*sin($t*90);  // for animation
 // Joint D angle
-//DD = 0; // [-145:1:145]
-DD=TT+30; // for animation
+DD = 0; // [-145:1:145]
+//DD=TT+30; // for animation
 
 // length of A-B arm (mm)
 LEN_AB=350; 
@@ -55,15 +59,15 @@ LEN_BC=380;
 // C to grip/load point (mm)
 LEN_CD = 160;  // to become s_CM_x and s_CM_y
 // Offset of Joint A from the Turntable axis
-SHIFT_TA = 0; // (mm)
-// Height of A from base
+//SHIFT_TA = 0; // (mm)
+// Height of A from base (mm)
 A_HEIGHT = 45;
 
 //  Using 1 inch square tube for the arms
 wTube = 1/mm_inch;  // mm
 twall = 0.0625/mm_inch;   // mm
-// Space between arm to help movement
-armSpace = 3; // mm
+// Space between arm to help movement (mm)
+armSpace = 3; 
 
 max_range = LEN_AB+LEN_BC;
 
@@ -73,12 +77,15 @@ max_range = LEN_AB+LEN_BC;
   gopro = 120 gram
   claw assembly = 150 (grams)
   smartphone = 160 gram   */
-AL_DENSITY = 0.002770;  // aluminum gram/mm^3
-SERVO_MASS = 90;    // Servo plus mounting structure (grams)
+  // aluminum gram/mm^3
+AL_DENSITY = 0.002770;  
+// Servo plus mounting structure (grams)
+SERVO_MASS = 90;    
 
-// Payload weight on point D
-PAYLOAD_MASS=200; // Maximum payload mass (thing being lifted) (gram)
-CD_MASS=200;  // weight of CD arm (servos, structure) (gram)
+// Payload weight on point D (grams)
+PAYLOAD_MASS=200; // Maximum payload mass (thing being lifted)
+// weight of CD arm (servos, structure) (gram)
+CD_MASS=200;  
 CM_CD = LEN_CD/2; // center-of-mass of CD, from C (mm)
 
 echo(LEN_AB=LEN_AB,LEN_BC=LEN_BC,LEN_CD=LEN_CD,PAYLOAD_MASS=PAYLOAD_MASS);
@@ -95,14 +102,15 @@ CM_AB = LEN_AB*0.5; // location of AB arm center-or-mass from A (mm)
 
 echo(BCweight=BCweight,ABweight=ABweight," grams");
 
-// torsion spring constants for A joint
+// torsion spring constants for A joint (g-mm/deg)
 A_K = -2433; // g-mm/deg,   
             // 600 is for spring 9271K619   ~589
              // 1000 is for spring 9271K145
              // 2688 is SPEC for spring 9271K589
              // 2433 MEASURED FOR spring 9271K589 (94%)
              // Measured in a Make 3 robot arm joint.  
-A_theta_zero = 90; // degrees, 90 is straight up
+// degrees, 90 is straight up
+A_theta_zero = 90; 
 
 // Angle ratio (288/180) = 1.6   1.6*32 = 51
 // With 360 deg servo:
@@ -372,7 +380,7 @@ module DClaw_assy(t_D=0,assy=true){
         rotate([0,0,t_D]) {
             *color("blue") claw_bracket(width=claw_end_w);
             *if (assy) translate([35,0,6]) rotate([90,-90,0]) Claw(assy=true);
-            if (assy) translate([0,0,4]) rotate([0,-90,0])              single_claw_assy();
+            if (assy) translate([0,0,4]) rotate([0,-90,0]) single_claw_assy(servoAng=CLAW);
             *translate([-25,-42,26]) rotate([90,0,90]) GoPro_model();
             *camera_bracket(thk = 3);
         }
@@ -528,6 +536,26 @@ module zip_loop() {
 }
 *zip_loop();// not for print
 
+unoHoles = [  //Uno, Leonardo holes
+  [  2.54, 15.24 ],
+  [  17.78, 66.04 ],
+  [  45.72, 66.04 ],
+  [  50.8, 13.97 ]
+  ];
+boardHoles = [ 
+  unoHoles,       //Uno
+  unoHoles,       //Leonardo
+  ];
+
+//This is used for placing the mounting holes and for making standoffs
+//child elements will be centered on that chosen boards mounting hole centers
+module holePlacement() {
+  for(i = boardHoles[1] ) {
+    translate(i)
+      children(0);
+  }
+}
+
 module Electronics_Board (Assy=true) {
     board_l = 100;
     board_w = 90;
@@ -560,10 +588,10 @@ module Electronics_Board (Assy=true) {
     if (Assy) {
         translate([board_shift,33,-5]) rotate([180,0,90]) Rocker_Switch();
         // off for thingiverse, purchased part
-        translate([board_w,20,-8]) rotate([180,0,-90]) arduino(); 
+        //translate([board_w,20,-8]) rotate([180,0,-90]) arduino(board=leonardo); 
     }
 }
-*Electronics_Board(Assy=true);//FOR_PRINT,  set Assy = false
+*Electronics_Board(Assy=false); //FOR_PRINT,  set Assy = false
 
 base_t = 0;   //  was 10 for old design
 
@@ -606,7 +634,7 @@ module draw_assy (t_A=0,t_B=0,t_C=0,t_D=0,t_T=0) {
     // Draw Base and Shoulder assembly adjust z translation as required
     translate([0,0,base_z_top]) rotate([0,0,180]) new_base_assy();
     
-    translate([SHIFT_TA,-wTube/2,A_HEIGHT-wTube/2+6])
+    translate([0,-wTube/2,A_HEIGHT-wTube/2+6])
         rotate([90,0,t_T]) {
             translate([0,0,-wTube/2]) TA_assy();
             rotate([0,0,t_A-180]) {
@@ -627,6 +655,6 @@ module draw_assy (t_A=0,t_B=0,t_C=0,t_D=0,t_T=0) {
         }
 } 
 difference () {
-    draw_assy (t_A=AA,t_B=BB,t_C=CC,t_D=DD,t_T=TT); // not for print
+    draw_assy (t_A=AA,t_B=BB,t_C=CC,t_D=DD,t_T=TT); 
     //translate([-100,0,-100]) cube([1000,1000,1000]);
 }

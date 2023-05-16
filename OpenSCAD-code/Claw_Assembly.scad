@@ -10,12 +10,16 @@
 use <Robot_Arm_Parts_lib.scad> // using inverse and other functions
 use <ME_lib.scad>  // Mechanical Engineering Library
 
-// Animation Commands to create an orbital fly-around:
-$vpr = [20,($t-0.5) * 30,90];   // view point rotation (spins the part)
-$vpt = [60,0,0];    // view point translation
-$vpf = 70;          // view point field of view
-$vpd = 140;         // view point distance
-//
+/* Animation Commands to create an orbital fly-around:
+// view point rotation (spins the part)
+$vpr = [20,($t-0.5) * 30,90];   
+// view point translation
+$vpt = [60,0,0];    
+// view point field of view
+$vpf = 70;          
+// view point distance
+$vpd = 140;         
+*/
 
 // use 140 for printing, 40 for display
 FACETS = 140; // [40,140]
