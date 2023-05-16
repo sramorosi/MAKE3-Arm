@@ -1,7 +1,7 @@
 # OpenSCAD code for MAKE3-Arm
 This folder contains the OpenSCAD documents that define the MAKE3-Arm and Input Arm
  
-Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3d printing. For more information on how this is done see [making STL models from OpenSCAD]{#Making STL models from OpenSCAD}
+Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3d printing. For more information on how this is done see [making STL models from OpenSCAD](#Making STL models from OpenSCAD)
 
 Familiarity with OpenSCAD is required.
 
