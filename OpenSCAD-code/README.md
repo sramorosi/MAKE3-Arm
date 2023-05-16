@@ -1,7 +1,7 @@
 # OpenSCAD code for MAKE3-Arm
 This folder contains the OpenSCAD documents that define the MAKE3-Arm and Input Arm
  
-Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3d printing. For more information on how this is done see [making STL models from OpenSCAD][#making-stl]
+Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3d printing. For more information on how this is done see [making STL models from OpenSCAD]{#Making STL models from OpenSCAD}
 
 Familiarity with OpenSCAD is required.
 
@@ -21,7 +21,7 @@ The documents are divided into assemblies, to keep the files from getting large.
 
 ![MAKE3-Arm-gif](/Images/MAKE3_Arm_FlyAround.gif)
 
-### Making STL models from OpenSCAD [#making-stl]
+### Making STL models from OpenSCAD
 
 To make STL models for 3D printing follow these steps for each part to print:
 1. Find the line in the code that draws the part. Remove * (disable) suffix on the line.  Note:  These lines have // FOR PRINT at the end of the line.  You are toggling on and off the parts that you want to print using the *.  You will need to toggle off the Assembly.  Do not print Assemblies.
