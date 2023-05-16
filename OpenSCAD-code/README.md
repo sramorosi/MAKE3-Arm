@@ -1,7 +1,7 @@
 # OpenSCAD code for MAKE3-Arm
-This folder contains the OpenSCAD documents that define the MAKE3-Arm and Input Arm
+This folder contains the OpenSCAD documents that define the MAKE3-Arm and Controllers.
  
-Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3d printing. 
+Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3D printing. 
 
 For more information on how to make .stl files see [making STL models from OpenSCAD](#making-stl-models-from-openscad)
 
@@ -13,9 +13,28 @@ The documents are divided into assemblies, to keep the files from getting large.
 
 ![Claw_Assy_FlyAround](/Images/Claw_Assy_FlyAround.gif)
 
+### Claw 3D printed parts
+
+1. rod (quantity 2), color "Blue", supports required
+2. quide (quantity 2), color "Navy"
+3. claw_bar (quantity 2), color "SkyBlue"
+4. base (quantity 1), color "DodgerBlue"
+
+### Claw Other Parts
+
+1. Servo (quantity 1), model xxx, includes horn,horn screws, horn screw bushings
+2. pins (quantity 4), Spring Steel Slotted Spring Pin, 5/64" Diameter, source McMaster Carr, part number yyyyy
+3. screws (quantity 4), attach servo to base
+4. foam window seal 
+
 ## Controllers.scad   (Input Arm Assembly controller shown)
 
-![Input Arm_Assy_FlyAround](/Images/InputArm_FlyAround.gif)
+![Controller_Arm](/Images/InputArm_FlyAround.gif)
+
+### Arm Controller 3D printed parts
+
+1. 
+2. 
 
 ## InputArm_Make3.scad   (Selector Assembly controller shown)
 
@@ -34,4 +53,10 @@ To make STL models for 3D printing follow these steps for each part to print:
 4. Export the rendered part as STL (F7)
 5. Load the STL into your favorite slicer.  Note: you may need to perform some STL cleanup, using your favorite tool.  I use the 3D Builder tool on Windows.
 
-Bill of Material (i.e. what to print)... Include in the OpenSCAD document.
+### Making Animation (.gif or video) files from OpenSCAD
+
+Familiarity with the Animation function in OpenSCAD is required.
+
+While animation is running in OpenSCAD, check the "Dump Pictures" box below the consol window.  One picture will be created for each frame and saved in the same folder as your OpenSCAD document.
+
+Use the free tool at EZGIF.COM [here](https://ezgif.com/maker) to make a gif or video.

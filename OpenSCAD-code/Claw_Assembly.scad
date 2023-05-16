@@ -7,6 +7,11 @@
   Links: BASE, CLAW, HORN, ROD
   Joints: SVO (base-horn), HR (horn-rod), CB (claw-base), RC (rod-claw)
  */
+//  To make STL models for 3D printing follow these steps:
+//  find "Export as STL" and remove the * (disable) suffix, 
+//     then render the part (F6) (this may take some time)
+//        then  Export as STL (F7)
+
 use <Robot_Arm_Parts_lib.scad> // using inverse and other functions
 use <ME_lib.scad>  // Mechanical Engineering Library
 
@@ -43,8 +48,6 @@ D_ROD = 50; // [30:0.5:70]
 ROT_SVO = 0; // [-20:1:20]
 // Number of position steps, for arrays
 steps = 6;  // [1:1:100]
-//  Block Size (mm)
-BLOCK = 50; 
 // Finger thickness (mm)
 BAR_THK = 5;
 // Finger width (mm)
@@ -53,24 +56,13 @@ BAR_HGT = 16;
 PIN_DIA = 2.6; 
 // Rod thickness (mm)
 ROD_THK = 6;
+//  Block Size (mm) display only
+BLOCK = 50; 
 // conversions
 mm_inch = 1/25.4;
 
-module rod(L=30,R=30,THK=5,HGT=10) {
-    intersection() {
-        arc_link(L=L,R=R,THK=THK,HGT=HGT+4);
-        translate([HGT,0,-(HGT+4)/2]) rotate([0,-90,0]) 
-            linear_extrude(2*HGT,convexity=10) // triangular side profile
-            polygon([[0,-THK],[1.9,-THK],[1.9,1.6*THK],[2.1+HGT,1.6*THK],
-            [2.1+HGT,-THK],
-            [4+HGT,-THK],[4+HGT,2.5*THK],[4,L-THK],[4,2*L],[0,2*L]]);
-    }
-}
-*color("green") rod(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // PRINT TWO
-
-module arc_link(L=30,R=30,THK=5,HGT=10) {
+module arc_link(L=30,R=30,THK=5,HGT=10) {  
     ALPHA = asin((L/2)/R);  // half angle of the arc
-    //echo(ALPHA=ALPHA);
     difference() {  // subtrack holes from link body
         union() {  // body of link
             translate([-R*cos(ALPHA),L/2,0]) rotate([0,0,-ALPHA]) 
@@ -85,13 +77,27 @@ module arc_link(L=30,R=30,THK=5,HGT=10) {
     }
 }
 
+module rod(L=30,R=30,THK=5,HGT=10) {
+    color("blue") intersection() {
+        arc_link(L=L,R=R,THK=THK,HGT=HGT+4);
+        translate([HGT,0,-(HGT+4)/2]) rotate([0,-90,0]) 
+            linear_extrude(2*HGT,convexity=10) // triangular side profile
+            polygon([[0,-THK],[1.9,-THK],[1.9,1.6*THK],[2.1+HGT,1.6*THK],
+            [2.1+HGT,-THK],
+            [4+HGT,-THK],[4+HGT,2.5*THK],[4,L-THK],[4,2*L],[0,2*L]]);
+    }
+}
+*rod(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
+
 module guide() {  // BLOCK GUIDE
     THK = 2;  // guide thickness
     SWP = 14;  // sweep
-    linear_extrude(BAR_HGT/2,convexity=10) {
-        the_poly();
-        mirror([0,1,0]) the_poly();
-    }
+    color("Navy") 
+        linear_extrude(BAR_HGT/2,convexity=10) {
+            the_poly();
+            mirror([0,1,0]) the_poly();
+        }
+        
     module the_poly() {
         polygon([[0,0],[0,0.1+BAR_HGT/2],[-BAR_THK,0.1+BAR_HGT/2],
         [-BAR_THK,BAR_HGT/2.5],[-1.5*BAR_THK,BAR_HGT/2.5],
@@ -100,10 +106,10 @@ module guide() {  // BLOCK GUIDE
         [THK,BLOCK/2],[THK,0]]);
     };
 }
-*guide(); // PRINT TWO
+*guide(); // Export as STL (quantity 2)
 
 module claw_bar(L=100,L_ROD=20) {
-    difference() { // subtract pin holes from polygon
+    color("SkyBlue") difference() { // subtract pin holes from polygon
         union() {
             translate([0,0,-BAR_HGT/2]) linear_extrude(BAR_HGT,convexity=10)
                 polygon([[0,BAR_THK/1.9],[L_ROD,BAR_THK/1.5],
@@ -117,15 +123,16 @@ module claw_bar(L=100,L_ROD=20) {
         translate([L_ROD,0,-25]) cylinder(50,d=PIN_DIA,$fn=FACETS); // PIN HOLE
     }
 }
-*claw_bar(L=130,L_ROD=D_FINGER_ROD);  // PRINT TWO
+*claw_bar(L=130,L_ROD=D_FINGER_ROD); // Export as STL (quantity 2)
 
 module claw_assy(L=130,L_ROD) { // Combines bar and guide, Click Together!
-    color("SkyBlue") claw_bar(L,L_ROD=D_FINGER_ROD);
-    color("Navy") translate([L-2,-BAR_THK/2,0]) rotate([90,0,-90]) guide();
+    claw_bar(L,L_ROD=D_FINGER_ROD);
+    translate([L-2,-BAR_THK/2,0]) rotate([90,0,-90]) guide();
 }
-*claw_assy(); // DON'T PRINT
+*claw_assy(); 
 
 module base() {
+    color("DodgerBlue") {
     difference() { // cube that holds the servo
         translate([-4,-15,-26]) cube([74,30,8],center=false);
         translate([D_SVO_CB,0,-16]) servo_body(vis=false);  // remove the servo 
@@ -146,8 +153,9 @@ module base() {
             cylinder(h=10,d=0.135/mm_inch,center=true,$fn=FACETS);
       }
     }
+    }
 }
-*base();  // FOR PRINT
+*base();// Export as STL (quantity 1)
 
 module draw_assy (angClaw=90,angRod=0,claw=10,rod=5,AY=0,Y2=10,L=120,RODS=0.9) {
     // Calculate position of second "distal finger" four-bar
@@ -163,11 +171,11 @@ module draw_assy (angClaw=90,angRod=0,claw=10,rod=5,AY=0,Y2=10,L=120,RODS=0.9) {
         claw_assy(L,D_FINGER_ROD); // Claw
         
         translate([claw,0,0]) rotate([0,0,angRod]) { // Rod
-            color("Blue")  rotate([0,0,-90]) rod(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK,HGT=BAR_HGT);
+            rotate([0,0,-90]) rod(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK,HGT=BAR_HGT);
         }
     }
 }
-
+/*  MULTI POSITION MODELING
 // Create HR (horn-rod) joint CIRCLE of points
 // LEFT CLAW
 leftPtHR = [ for (a = [-90+ROT_SVO : 180/steps : 90+ROT_SVO])
@@ -216,8 +224,9 @@ offset_ang = AddError/steps;
 range_ang = max(Ang_Error)-min(Ang_Error);
 //echo(offset_ang=offset_ang);
 //echo(range_ang=range_ang);
+*/
 
-module horn(len=20) {
+module horn(len=20) {  // Servo hord for display only... do not print
     color("GREY") difference() {
         translate([-len/2,0,0]) simple_link (l=len,w=PIN_DIA*3,t=4,d=PIN_DIA);
         cylinder(h=len,d=PIN_DIA*1.5,center=true);
@@ -231,7 +240,7 @@ module single_claw_assy(servoAng=-60) {
 
     draw_assy(abLeft[0],abLeft[1],claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL,RODS=-0.9);
     mirror([0,1,0]) draw_assy(abRight[0],abRight[1],claw=D_FINGER_ROD,rod=D_ROD,AY=D_FB_Y,Y2=D_FB_DL_Y,L=D_FINGER_DISTAL); 
-    color("DodgerBlue") base(); 
+    base(); 
     translate([D_SVO_CB,0,-14]) rotate([0,0,servoAng]) horn(len=HORN_RAD*2); // horn
     translate([D_SVO_CB,0,-16]) servo_body();
 }
