@@ -17,7 +17,9 @@ The documents are divided into assemblies, to keep the files from getting large.
 
 ![Input Arm_Assy_FlyAround](/Images/InputArm_FlyAround.gif)
 
-## InputArm_Make3.scad   (Selector Assembly controller *** to be shown)
+## InputArm_Make3.scad   (Selector Assembly controller shown)
+
+![Controller-Selector](/Images/Controller-Selector.png)
 
 ## MAKE3_Assy.scad (imports Claw_Assembly.scad)
 
