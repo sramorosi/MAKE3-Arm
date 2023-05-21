@@ -9,10 +9,10 @@
 #define RAMP_START_DIST 50 // distance at which velocity ramp-down begins (mm) used in velocity control
 #define ZERO_DIST 0.5     // value used to determine if distance is zero (mm)
 
-// STATES (or programs)  Controlled by the selector potentiometer.
-#define S_SERIAL 0      // enter a serial command from serial.input
+// STATES (or programs)  Controlled by the selector potentiometer
+//#define S_SERIAL 0      // enter a serial command from serial.input
 #define S_TELEOP_1 1   
-#define S_AUTO_2 2 
+#define S_AUTO_2   2 
 #define S_TELEOP_3 3 
 #define S_TELEOP_4 4
 #define S_AUTO_5 5   // wait above block
@@ -59,7 +59,7 @@
 // GEOMETRY OF ARM:
 #define LEN_AB 350.0     // Length of Input AB arm in mm
 #define LEN_BC 380.0     // Length of Input BC arm in mm
-#define FLOOR -150.0     // Distance from A joint to Floor in mm (-150 mm without camera, -50 with camera)
+#define FLOOR -120.0     // Distance from A joint to Floor in mm (-120 mm claw, -50 with camera)
 #define S_CG_X 150.0    // offset from joint C to G in X.  180 is a claw value,  90 is GoPro
 #define S_CG_Y -38.0     // offset from joint C to G in Y.  -38 is GoPro
 #define S_CG_Z 0.0     // offset from joint C to G in Z.  40 is Claw.  0 is GoPro
@@ -382,16 +382,15 @@ float servo_map(joint & jt) { // Map current joint angle to the servo microsecon
   return floatMap(jt.current_angle, jt.svo.low_ang, jt.svo.high_ang, jt.svo.low_ms, jt.svo.high_ms);
 }
 
-void updateArmPtC(arm & the_arm) { // Moves current point C toward target_pt at given feed rate (mmps)
+void updateArmPtC(arm & the_arm) { // Moves current point C toward target_pt at given feed rate (mm/sec)
   float moveDist,newFeedRate,distC;
   the_arm.line_len = ptpt_dist(the_arm.current_pt,the_arm.target_pt);
-  // cut the feedrate when the current pt x,y component is close to zero.  To stop the rocking dynamics. 
+  // decrease the feedrate when the current pt x,y component is close to 0,0.  To stop the rocking dynamics. 
   distC = sqrt(pow(the_arm.current_pt.x,2)+pow(the_arm.current_pt.y,2));
   newFeedRate = the_arm.feedRate;
-    if (distC < 100) newFeedRate = newFeedRate*((distC+50)/150);  // Ramp down formula
-    // ADDED RAMP DOWN ON 3/18/2023  
-    if (the_arm.line_len < RAMP_START_DIST) {
-      newFeedRate = the_arm.feedRate*(the_arm.line_len/RAMP_START_DIST);  // scale down based on distance
+    if (distC < 100) newFeedRate = newFeedRate*((distC+50)/150);  // Ramp down around 0,0
+    if (the_arm.line_len < RAMP_START_DIST) { // decrease velocity at end for pick and place
+      newFeedRate = the_arm.feedRate*(the_arm.line_len/RAMP_START_DIST);  // scale down
     } else {
       newFeedRate = the_arm.feedRate;  // keep using the current feedrate
     };
@@ -451,7 +450,7 @@ void logCmds(sequence & the_cmds, char *string) {
     Serial.println("."); 
   }
 } 
-
+*/
 void logData(joint jt,char jt_letter) {
   Serial.print(make3.state);
   Serial.print(",cmdNo=");
@@ -479,7 +478,7 @@ void logData(joint jt,char jt_letter) {
   //Serial.print(",target_vel (DEG/SEC),"); // ONLY USED FOR JOINTS C AND D
   //Serial.print(jt.target_velocity*RADIAN*1000.0,1);
   Serial.println(".");
-}  */
+}  //
 void printPoint(point the_pt,char letter) {
   Serial.print(letter);
   Serial.print(",");
@@ -721,7 +720,7 @@ void setCmd(command & cmd, int v0, int v1, int v2, int v3, int v4) {
   cmd.arg[3] = v3;
   cmd.arg[4] = v4;
 }
-
+/*
 void getCmdSerial(command & cmd) { // read command from serial port
   // If cmd[0] = 0 then command has NOT been read
   int i;
@@ -742,7 +741,7 @@ void getCmdSerial(command & cmd) { // read command from serial port
     Serial.println("END");
   }
 }
-//
+*/
 point path_orbit_xy(pathAngles & the_pathA,point center,int rad, float sweepAng) {  
   // Build a G-point Orbit path about point center, symetric about y=0 plane    
   // Assumes that the C joint if pointing down (-90 degrees)
@@ -839,7 +838,7 @@ void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean l
     a = a + angIncrement;
   }
 }
-//
+/*
 void print_pathAngles(pathAngles & the_pathA) {  // Print servo angle path for OpenSCAD
   int i;  
   Serial.print("[");
@@ -857,7 +856,7 @@ void print_pathAngles(pathAngles & the_pathA) {  // Print servo angle path for O
     Serial.println("],");
   }
 }  
-//
+*/
 void setup() {  // setup code here, to run once:
   pinMode(13,OUTPUT); // LED on Arduino board
   digitalWrite(13,HIGH); // Turn the LED on
@@ -868,7 +867,7 @@ void setup() {  // setup code here, to run once:
   digitalWrite(clawSwitch.inputPin,HIGH);  // use the built in pull-up resistor
 
   Serial.begin(115200); // baud rate
-  delay(2500);  // serial output needs a Big (2500) delay if one wants output during setup
+  //delay(2500);  // serial output needs a Big (2500) delay if one wants output during setup
 
   pwm.begin();
   /*  Adafruit sevo library
@@ -912,7 +911,7 @@ void setup() {  // setup code here, to run once:
   digitalWrite(13,LOW); // Turn the LED off
 
   make3.current_pt = path_orbit_xy(pathA,{400,0,200},200,180.0);
-  print_pathAngles(pathA);  
+  //print_pathAngles(pathA);  
   }
 
 void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
@@ -922,52 +921,53 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
   static int new_x, new_y, new_z;  
   
   jS.pot_value = analogRead(jS.pot.analog_pin);  // read the selector
-  the_arm.state = jS.pot_value/100; // convert to an integer from 0 to 9
-
+  the_arm.state = jS.pot_value/75; // convert to an integer from  0 to 12
+  // pot values are in the range of 100 to 920
   if (the_arm.state != old_state){
     switch (the_arm.state) {
-      case S_SERIAL: 
+      /*case S_SERIAL: 
         the_arm.n = 0; // reset command pointer
-        break;
-      case S_AUTO_2:
+        break; */
+      case S_AUTO_2:  // EXAMPLE OF ORBIT COMMAND
         the_arm.n = 0; // reset command pointer
-        the_arm.loopCount = 0;
-        setCmd(seQ.cmd[0],K_LIFT,0,0,0,0); 
+        the_arm.loopCount = 0;   
+        setCmd(seQ.cmd[0],K_LIFT,0,0,0,0);         // turn lift off
         setCmd(seQ.cmd[1],K_LINE_G,100,450,250,200);  // move to start
-        setCmd(seQ.cmd[2],K_ORBIT_Z,  100, 450,250,180); // open claw and wait
+        setCmd(seQ.cmd[2],K_ORBIT_Z,  100, 450,250,180); // orbit, also sets the aim mode
         setCmd(seQ.cmd[3],K_END,0,0,0,0); 
          break;
-      case S_AUTO_5:  // BLOCK GRAB AND STACK,  PATH METHOD
+      case S_AUTO_5:  // PREPARE FOR FIRST BLOCK GRAB
         the_arm.n = 0; // reset command pointer
         the_arm.loopCount = 0;
-        the_arm.mode = HM_CD_AIM; 
+        the_arm.mode = HM_CD_AIM;   // K_LINE does not set aim mode
         make3.aim_pt.x = 250; make3.aim_pt.y =-5000; make3.aim_pt.z = 100;
-        setCmd(seQ.cmd[0],K_LIFT,0,0,0,0); 
+        setCmd(seQ.cmd[0],K_LIFT,0,0,0,0);          // turn lift off
         setCmd(seQ.cmd[1],K_LINE_G,300,250,200,-50);  // move to start
         setCmd(seQ.cmd[2],K_CLAW,  200,-15,500,0); // open claw and wait
-        setCmd(seQ.cmd[3],K_END,0,0,0,0); 
+        setCmd(seQ.cmd[3],K_LIFT,0,0,0,0);  // toggle z-lift off
+        setCmd(seQ.cmd[4],K_END,0,0,0,0); 
         break;      
-      case S_AUTO_6:  // BLOCK GRAB AND STACK,  PATH METHOD
+      case S_AUTO_6:  // GRAB BLOCKS FROM FLOOR AND STACK
         the_arm.n = 0; // reset command pointer
         the_arm.loopCount = 0;
-        the_arm.mode = HM_CD_AIM; 
+        the_arm.mode = HM_CD_AIM; // K_LINE does not set aim mode
         make3.aim_pt.x = 250; make3.aim_pt.y =-5000; make3.aim_pt.z = 100;
-        setCmd(seQ.cmd[0],K_LINE_G,300,250,200,-100);  // move down, first block pickup
+        setCmd(seQ.cmd[0],K_LINE_G,50,250,200,-100);  // move down, first block pickup
         setCmd(seQ.cmd[1],K_LIFT,1,100,0,0);  // toggle on the z-lift for paths
         setCmd(seQ.cmd[2],K_CLAW,  200,45,400,0); // close claw
-        setCmd(seQ.cmd[3],K_LINE_G,100,250,-200,-100);  // move right
+        setCmd(seQ.cmd[3],K_LINE_G,300,250,-200,-100);  // move right
         setCmd(seQ.cmd[4],K_CLAW,  200,-45,400,0); // open claw
         setCmd(seQ.cmd[5],K_LINE_G,300,250,200,-100);  // move to left
         setCmd(seQ.cmd[6],K_COMBINE,3, 0, 0, 51);
         setCmd(seQ.cmd[7],K_GOTO,2,5,0,0);  // go to command 2 and loop
         setCmd(seQ.cmd[8],K_LINE_G,300,250,0,200);  // move to block pickup
-        setCmd(seQ.cmd[9],K_LIFT,0,100,0,0);  // toggle z-lift off
+        setCmd(seQ.cmd[9],K_LIFT,0,0,0,0);  // toggle z-lift off
         setCmd(seQ.cmd[10],K_END,0,0,0,0); 
         break;      
-      case S_AUTO_7: //  BLOCK STACK TO STACK
+      case S_AUTO_7: //  MOVE FROM LEFT BLOCK STACK TO RIGHT BLOCK STACK
         the_arm.n = 0; // reset command pointer
         the_arm.loopCount = 0;
-        the_arm.mode = HM_CD_AIM; 
+        the_arm.mode = HM_CD_AIM; // K_LINE does not set aim mode
         make3.aim_pt.x = 250; make3.aim_pt.y =-5000; make3.aim_pt.z = 100;
         setCmd(seQ.cmd[0],K_LIFT,1,100,0,0);  // toggle on the z-lift for paths
         setCmd(seQ.cmd[1],K_LINE_G,300,250,-200,155);  // move to right
@@ -981,13 +981,13 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
         setCmd(seQ.cmd[9],K_LIFT,0,100,0,0);  // toggle z-lift off
         setCmd(seQ.cmd[10],K_END,0,0,0,0); 
         break; 
-      case S_AUTO_10:
+      case S_AUTO_10:  // TBD
         break;      
       case S_TELEOP_1:
       case S_TELEOP_3:
       case S_TELEOP_4:
       case S_TELEOP_8:
-      case S_TELEOP_9:
+      case S_TELEOP_9:  // ALL OF THE TELEOP INITIALIZE THE SAME
         the_arm.n = 0; // reset command pointer
         the_arm.loopCount = 0;
         the_arm.mode = HM_CD_ABS;
@@ -1084,7 +1084,7 @@ void loop() {  //########### MAIN LOOP ############
   loopTime(make3); // Capture cycle time
   
   switch (make3.state) {
-    case S_SERIAL: 
+    /* case S_SERIAL: 
       if (!runningCmd) {
         getCmdSerial(cmd);  // returns zeros if no command
         if (cmd.arg[0] != 0) runningCmd = true;
@@ -1094,9 +1094,9 @@ void loop() {  //########### MAIN LOOP ############
           Serial.print("running command ");        
         } else {  // done
           runningCmd = false;
-        };   */
+        };   
       }
-      break;
+      break; */
     case S_AUTO_2: 
     case S_AUTO_5:
     case S_AUTO_6:
@@ -1104,8 +1104,6 @@ void loop() {  //########### MAIN LOOP ############
       readCommands(make3,seQ); // read a sequence of commands and act accordingly
       updateJointBySpeed(make3.jCLAW, make3.dt);  // update Claw joint
       break; 
-    case S_AUTO_10:
-      break;
     case S_TELEOP_1: 
     case S_TELEOP_3:
     case S_TELEOP_4: 
@@ -1143,6 +1141,8 @@ void loop() {  //########### MAIN LOOP ############
       updateJointBySpeed(make3.jD, make3.dt);  
  
       break;
+    default:  // unspecified state should do nothing
+      break;
   }
 
   // FLOOR HARD LIMITS
@@ -1153,7 +1153,7 @@ void loop() {  //########### MAIN LOOP ############
   if (make3.jA.target_angle < 12.0/RADIAN) make3.jA.target_angle = 12.0/RADIAN; // Joint A physical limit.  Needs design fix.  3/7/2023
   
   //  Serial Output for Debugging
-  //logData(make3.jT,'T');
+  //logData(jS,'S');
   //logPoint(make3);
   //
   Serial.print("STATE,");
@@ -1174,7 +1174,7 @@ void loop() {  //########### MAIN LOOP ############
   //Serial.print(make3.line_len);
   Serial.print(",dt=");
   Serial.println(make3.dt);        
-//
+  //
   blink();  
 
   // Convert the .current_angle(s) to PWM signal and send 
@@ -1184,4 +1184,5 @@ void loop() {  //########### MAIN LOOP ############
   pwm.writeMicroseconds(make3.jD.svo.digital_pin, servo_map(make3.jD)); // Adafruit servo library
   pwm.writeMicroseconds(make3.jCLAW.svo.digital_pin, servo_map(make3.jCLAW)); // Adafruit servo library
   pwm.writeMicroseconds(make3.jT.svo.digital_pin, servo_map(make3.jT)); // Adafruit servo library
+  //
 } // END OF MAIN LOOP

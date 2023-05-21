@@ -1,28 +1,28 @@
 //  SAMC Make 3
 //  Servo Actuated Motion Control
 //
-//  By SrAmo,  December 2022
+//  By SrAmo,  May 2023
 //
-// To Do:
-// Angles, lengths diagram (with Thingiverse publish)
-//  Make tube drill templates
-// add holes to tubes (for print or routing)
-// 
 use <ME_lib.scad> // contains forces, springs, MS modules and functions
 include <Part-Constants.scad>
 use <Robot_Arm_Parts_lib.scad>
 use <gears_involute.scad>  // Modified version of spur gears by Greg Frost
 use <Claw_Assembly.scad>
 
+DISPLAY_ASSY = true;
+
+// Boolean for Animation related features
+ANIMATION_ON = false;
 /* Animation Commands to create an orbital fly-around:
 // view point rotation (spins the part)
-$vpr = [70, 0,30];   
 // view point translation
-$vpt = [290,0,170];    
+$vpt = [290,0,190];
 // view point field of view
-$vpf = 70;      
+$vpf = 70;
 // view point distance
-$vpd = 500;         
+$vpd = 400;
+// view poit rotation
+$vpr = [70, 0,30];
 */
 
 // use 140 for printing, 40 for display
@@ -32,25 +32,19 @@ FACETS = 100; // [40,140]
 steps = 40; // [2:1:200]
 
 // Output the moment calculation in the error log window
-ECHO_MOMENTS = true;
+ECHO_MOMENTS = ANIMATION_ON ? false : true;  
 // Joint A angle
-AA = 135; // [0:1:175]
-//AA=90*sin($t*180);  // for animation
+AA = ANIMATION_ON ? 90*sin(45+$t*45) : 135;
 // Joint B angle
-BB = -100; // [-175:1:0]
-//BB=-90*sin($t*180);  // for animation
+BB = ANIMATION_ON ? -30*sin($t*180)-90 : -100; // [-175:1:0]
 // Joint C angle
-CC = -120; // [-145:1:145]
-//CC=AA+BB-90;
-//echo(AA=AA,BB=BB,CC=CC);
+CC = ANIMATION_ON ? -AA-BB-90 : -120; // [-145:1:145]
 // Joint CLAW angle
 CLAW = 20; // [-90:5:90]
 // Turntable angle
-TT = 0; // [-80:80]
-//TT=60*sin($t*90);  // for animation
+TT = ANIMATION_ON ? 30*sin($t*90) :0; // [-80:80]
 // Joint D angle
-DD = 0; // [-145:1:145]
-//DD=TT+30; // for animation
+DD = ANIMATION_ON ? TT+30 : 0; // [-145:1:145]
 
 // length of A-B arm (mm)
 LEN_AB=350; 
@@ -151,19 +145,6 @@ echo("SERVO MOTOR CAPABILITY=",Motor_Max_Torque=Motor_Max_Torque," gram-mm");
 echo("Big Gear teeth=",big_gear_teeth," Small Gear teeth =",small_gear_teeth);
 echo("GEARED SERVO CAPABILITY=",Geared_Max_Torque=Geared_Max_Torque," gram-mm");
 
-// USE LIST COMPREHENSIONS TO FILL ARRAYS
-//  A, zero = horizontal, positive rotation up
-//  B, zero = inline with AB, positive = same sense as A
-//  C, zero = inline with BC, positive = same sense as A and B
-//  T, positive = CCW looking down
-
-//angles = [ for (a = [0 : steps-1]) get_angles_from_t(a/steps,0,180,0,-180)];
-angles = [ for (a = [0 : steps-1]) sweep1(a/steps,0,160,0,-170,-90,90)];
-//echo (angles=angles);
-    
-c = [ for (a = [0 : steps-1]) [get_CX(angles[a]),get_CY(angles[a]),0]];
-
-d = [ for (a = [0 : steps-1]) [c[a][0]+LEN_CD*cos(angles[a][2]),c[a][1]+LEN_CD*sin(angles[a][2]),0]];
 
 module tube_model(t=1,wall=0.1,l=10) {
     color("grey") linear_extrude(height=l, convexity=10) difference() {
@@ -202,22 +183,24 @@ module servo_mount(FT6335=true) {
     z1 = 25; // 1 inch = 25.4 mm.  
     svo_z_adjust = FT6335 ? 1 : 0; // Adjustment for the FT6335 servo
     
-    difference () {
-        translate([-xshift,y1/2+0.5,-z1/2])  // 0.5 mm in y if for preload
-            cube([xtotal,svo_w+y1,z1],center=true);
-
-        translate([0,0,svo_z_adjust]) servo_body (vis=false);
-        translate([-xshift-1,0,-5])
-            cube([svo_flange_l,svo_w,11],center=true);
-        
+    color("blue") difference () {
+        difference () {
+            translate([-xshift,y1/2+0.5,-z1/2])  // 0.5 mm in y if for preload
+                cube([xtotal,svo_w+y1,z1],center=true);
+    
+            translate([0,0,svo_z_adjust]) servo_body (vis=false);
+            translate([-xshift-1,0,-5])
+                cube([svo_flange_l,svo_w,11],center=true);
+            
         }
-        translate([0,0,-12]) rotate([90,0,0]) {
-            hole_pair (x = 22,y=15,d=3.3,h=40,$fn=FACETS);
-            hole_pair (x = -43,y=15,d=3.3,h=40,$fn=FACETS);
+            translate([0,0,-12]) rotate([90,0,0]) {
+                hole_pair (x = 22,y=15,d=3.3,h=40,$fn=FACETS);
+                hole_pair (x = -43,y=15,d=3.3,h=40,$fn=FACETS);
+            }
         }
     }
 
-*servo_mount(); // EXPORT AS STL
+*servo_mount(); // EXPORT AS STL, quantity 1
 
 module guss_profile(tube=wTube,gap=0.1,daxel=Qtr_bearing_od,dholes=3.5) {
     // 2D SHAPE.  Can write .svg
@@ -260,22 +243,22 @@ module plain_guss() {
         translate([wTube/2,0,6]) cube([wTube,100,1],center=true);
     }
 }
-*plain_guss(); // EXPORT AS STL
+*plain_guss(); // EXPORT AS STL, quantity 1
 
-module big_gear_guss(teeth=10) {
-    color("Aqua") union() {
+module B_gear_guss(teeth=10) {
+    color("aqua") union() {
         32P_Actobotics(teeth=big_gear_teeth,thickness=8,bore=Qtr_bearing_od);    
         linear_extrude(8, convexity=10) guss_profile(tube=wTube,gap=armSpace,daxel=Qtr_bearing_od,dholes=3.5);
     }
 }
-*big_gear_guss(teeth=big_gear_teeth); // EXPORT AS STL
+*B_gear_guss(teeth=big_gear_teeth); // EXPORT AS STL, quantity 1
 
-module big_gear_lollypop(teeth=10,gear_side=true) {
+module A_gear_lollypop(teeth=10,gear_side=true) {
     // wTube
     lugT = 8; // mm
     gear_dia = 0.9*(teeth)*(2.54/3.14159);
 
-    color("Aqua")  // difficulty making two sides have different colors      
+    color("olive")  // difficulty making two sides have different colors      
     difference() {
         union() {
             intersection() {
@@ -310,8 +293,8 @@ module big_gear_lollypop(teeth=10,gear_side=true) {
         }
     }
 }
-*big_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true); // EXPORT AS STL
-*big_gear_lollypop(teeth=big_gear_teeth,gear_side=false); // EXPORT AS STL
+*rotate([0,180,0]) A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true); // EXPORT AS STL, quantity 1
+*A_gear_lollypop(teeth=big_gear_teeth,gear_side=false); // EXPORT AS STL, quantity 1
 
 module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10) {
     // Locate servo block assembly so that it interfaces with
@@ -332,7 +315,7 @@ module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10) {
         svoCtrAxial=(big_gear_rad+small_gear_rad)*cos(svoAng);
     
         translate([-svoCtrAxial,svoCtrLateral,0]) {
-            color("blue") servo_mount();
+            servo_mount();
             servo_body();  // servo
             // turn off for thingiverse, purchased part
             32P_Actobotics(teeth=small_gear_teeth);   // servo gear 32 tooth
@@ -341,28 +324,7 @@ module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10) {
 }
 *geared_svo_block_assy(big_gear_teeth=200,small_gear_teeth=small_gear_teeth,wbeam=wTube);
 
-
-module claw_bracket(width=30,thk=25,len=60) {
-    difference () {
-    union() {
-        svo_block_ring(thk=thk,$fn=FACETS);
-        translate([20,width,(thk+5)/2]) ear();
-        translate([20,-width,(thk+5)/2]) rotate([180,0,0]) ear();
-    }
-    // remove End attach pin
-    translate ([len-claw_height,0,15]) rotate([90,90,0])
-        hole_pair (x = 0,y=hole_space,d=3.5,h=100);
-    }
-    module ear() {
-        difference() {
-            cube([len,width,thk-5],center=true);
-            translate([-20,-10,0]) cylinder(h=thk*2,d=24,center=true);
-        }
-    }
-}
-*claw_bracket(width=10);  // FOR PRINT
-
-module camera_bracket(thk=3) {
+module camera_bracket(thk=3) { // mount for gopro camera
     difference () {
     union() {
         svo_block_ring(thk=thk,$fn=FACETS);
@@ -371,7 +333,7 @@ module camera_bracket(thk=3) {
         }
     }
 }
-*camera_bracket(thk=3);  // FOR PRINT
+*camera_bracket(thk=3);  
 
 module DClaw_assy(t_D=0,assy=true){
     claw_end_w = 10; // claw interface width, mm
@@ -403,7 +365,7 @@ module CD_assy(t_C=0,t_D=0) {
 
 module BC_arm_assy(armLen = 100,t_C=0,t_D=0){
     // fixed tube assy
-    big_gear_guss(teeth=big_gear_teeth);
+    B_gear_guss(teeth=big_gear_teeth);
     translate([0,0,-wTube-2*armSpace]) plain_guss();
 
     // BC tube
@@ -443,7 +405,7 @@ module AB_arm_assy(armLen = 100){
 *AB_arm_assy(armLen=LEN_AB); // not for print
 
 module turntable_gear(teeth = 30,thickness=6) {
-    difference() {
+    color ("tomato") difference() {
         32P_Actobotics(teeth=teeth,thickness=thickness);   
         translate([0,0,-1]) hex (size=0.505/mm_inch,l=thickness*2);
         translate([0,0,-1]) rotate([0,0,45]) Rotation_Pattern(number=4,radius=0.385/mm_inch,total_angle=360) 
@@ -452,12 +414,12 @@ module turntable_gear(teeth = 30,thickness=6) {
         translate([0,0,thickness-3]) cylinder(h=thickness,d=35,center=false,$fn=FACETS);
     }
 }
-*turntable_gear(teeth = TT_BIG_GEAR,thickness=8); // FOR PRINT
+*turntable_gear(teeth = TT_BIG_GEAR,thickness=8); // Export as STL, quantity 1
 
 module TA_assy() { // Assy between Turntable and joint A
     
-    big_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true);
-    big_gear_lollypop(teeth=big_gear_teeth,gear_side=false);
+    A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true);
+    A_gear_lollypop(teeth=big_gear_teeth,gear_side=false);
     
     length=4/mm_inch; // length of hex shaft
     translate([0,-wTube*3/4,0]) rotate([90,0,0])  
@@ -485,6 +447,20 @@ module CalculateMoments(display=false) {
     // Display (boolean) makes 3D column of moments magnitude (3D chart)
     // USE LIST COMPREHENSIONS TO FILL ARRAYS
     // MOMENT ON CD
+    // USE LIST COMPREHENSIONS TO FILL angle ARRAYS
+    //  A, zero = horizontal, positive rotation up
+    //  B, zero = inline with AB, positive = same sense as A
+    //  C, zero = inline with BC, positive = same sense as A and B
+    //  T, positive = CCW looking down
+
+    //angles = [ for (a = [0 : steps-1]) get_angles_from_t(a/steps,0,180,0,-180)];
+    angles = [ for (a = [0 : steps-1]) sweep1(a/steps,0,160,0,-170,-90,90)];
+    //echo (angles=angles);
+        
+    //c = [ for (a = [0 : steps-1]) [get_CX(angles[a]),get_CY(angles[a]),0]];
+
+    //d = [ for (a = [0 : steps-1]) [c[a][0]+LEN_CD*cos(angles[a][2]),c[a][1]+LEN_CD*sin(angles[a][2]),0]];
+    
     C_mom = [ for (a = [0 : steps-1]) (PAYLOAD_MASS*LEN_CD+CD_MASS*CM_CD)*cos(angles[a][0]+angles[a][1]+angles[a][2]) ];
     Margin_Safety2(C_mom,Motor_Max_Torque,"C moment");
         
@@ -563,7 +539,7 @@ module Electronics_Board (Assy=true) {
     board_shift = 60;
     y_w = (board_w-20)/2;
     x_w = (board_l-20)/2;
-    difference() {
+    color ("palegreen") {difference() {
         translate([board_shift,0,-2.1]) rounded_cube([board_l,board_w,board_t],r=10,center=true);
         translate([board_shift,33,0]) scale([1.01,1.01,1]) rotate([0,0,90]) Rocker_Switch();
         
@@ -584,14 +560,14 @@ module Electronics_Board (Assy=true) {
     }
     translate([board_shift+20,40,0]) zip_loop(); // zip tie loop
     translate([board_shift-20,-40,0]) zip_loop();// zip tie loop
-
+    }
     if (Assy) {
         translate([board_shift,33,-5]) rotate([180,0,90]) Rocker_Switch();
         // off for thingiverse, purchased part
         //translate([board_w,20,-8]) rotate([180,0,-90]) arduino(board=leonardo); 
     }
 }
-*Electronics_Board(Assy=false); //FOR_PRINT,  set Assy = false
+*Electronics_Board(Assy=false); // Export as STL, quantity 1
 
 base_t = 0;   //  was 10 for old design
 
@@ -641,20 +617,41 @@ module draw_assy (t_A=0,t_B=0,t_C=0,t_D=0,t_T=0) {
                 AB_arm_assy(armLen=LEN_AB);
                 // A joint .25 inch shaft,  LENGTH = 2.5 inch
                 translate([0,0,-10]) 
-                    cylinder(h=2.5/mm_inch,d=hole_qtr_inch,center=true);
+                    cylinder(h=2.0/mm_inch,d=hole_qtr_inch,center=true);
                 // Draw the BC link and End
                 translate([-LEN_AB,0,0]) {
                     rotate([0,0,t_B]) 
                         rotate([0,0,0]) 
                             BC_arm_assy(armLen=LEN_BC,t_C=t_C,t_D=t_D);
                     // B joint .25 inch shaft,  LENGTH = 2.5 inch
-                    translate([0,0,-10]) cylinder(h=2.5/mm_inch,d=hole_qtr_inch,center=true);
+                    translate([0,0,-10]) cylinder(h=1.5/mm_inch,d=hole_qtr_inch,center=true);
                 }
 
             }
         }
 } 
-difference () {
+module draw_letters(t_A=0,t_B=0,t_C=0,t_D=0,t_T=0) {
+    TSIZE = 25;
+    TX = 10;
+    TZ = 60;
+    if (ANIMATION_ON) color("red") {
+        
+        rotate([90,0,t_T]) translate([TX,0,TZ]) text("T",size=TSIZE);
+        
+        rotate([90,0,t_T]) translate([TX,A_HEIGHT,TZ]) text("A",size=TSIZE);
+        
+        rotate([0,-t_A,0]) translate([LEN_AB,A_HEIGHT,0]) {
+            rotate([90,0,t_T]) translate([TX,0,TZ]) text("B",size=TSIZE);
+            rotate([0,-t_B,0]) translate([LEN_BC,0,0]) {
+                rotate([90,0,t_T]) translate([0,60,-TZ]) text("C",size=TSIZE);
+            }
+       }
+    }
+}
+
+*draw_letters (t_A=AA,t_B=BB,t_C=CC,t_D=DD,t_T=TT);
+
+if (DISPLAY_ASSY) difference () {
     draw_assy (t_A=AA,t_B=BB,t_C=CC,t_D=DD,t_T=TT); 
     //translate([-100,0,-100]) cube([1000,1000,1000]);
 }

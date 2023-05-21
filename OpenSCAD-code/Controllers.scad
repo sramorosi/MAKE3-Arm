@@ -32,7 +32,7 @@ FACETS = 40; // [40,140]
 // Draw the Input Arm Assembly?
 display_assy = true;
 // Draw the Selector?
-display_selector = true;
+display_selector = false;
 // Section cut Assy at X = 0?
 clip_yz = false;
 // Section cut Assy at Z = 0?
@@ -162,6 +162,7 @@ module P090L_pot (negative=false) {
 *P090L_pot(negative=false); 
 
 //######################################################## //
+
 module screwHoles(dia=15,shrink=false) { // pair of screw holes that hold the stack together
     cylDia = shrink ? SCREW_DIA*0.9 : SCREW_DIA;
     translate([dia/2.8,-dia/2-4,0])  cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
@@ -202,7 +203,7 @@ module PotLug() {  // Model of Potentiometer holder
         screwHoles(dia=LUG_DIA);  // remove screw holes
         }
 }
-*rotate([0,180,0]) PotLug(); // Export as STL... F7 (quantity 4)
+*rotate([0,180,0]) PotLug(); // Export as STL... F7 (quantity 2)
 
 module NonPotLug(thk=OUTER_LUG_THK,notch=false) {  // Model of Potentiometer holder
     color("green") difference() {
@@ -217,10 +218,10 @@ module NonPotLug(thk=OUTER_LUG_THK,notch=false) {  // Model of Potentiometer hol
         screwHoles(dia=LUG_DIA,shrink=true);
     }
 }
-*NonPotLug();
+*rotate([0,180,0]) NonPotLug(); // Export as STL... F7 (quantity 2)
 
 module PotCover() {
-    color("Cyan") 
+    color("cyan") 
     difference () {// Side that holds the POT
         roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,$fn=FACETS);
         // remove potentiometer interface
@@ -229,7 +230,7 @@ module PotCover() {
         translate([0,-FLAT_DIST,0]) cube([LUG_DIA/2.6,10,10],center=true);
     }
 }
-*PotCover(); // STL (2)
+*PotCover(); // Export as STL... F7 (quantity 2)
 
 module BasePotCover() {
     color("SlateBlue") 
@@ -244,7 +245,7 @@ module BasePotCover() {
         translate([-LUG_DIA/1.5,0,0]) cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
     }
 }
-*BasePotCover(); // STL (1)
+*BasePotCover(); // Export as STL... F7 (quantity 1)
 
 module joint_visuals(cut=true) { // Use for cross section cuts of Joints
     difference() { 
@@ -312,7 +313,7 @@ module switch(negative = false) {  //12x12x5mm Mini/Micro/Small PCB Momentary Ta
 }
 //switch(true,$fn=FACETS);
 
-module BC_Arm_model(len=100) {
+module BC_Arm(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
     angSin = asin(LUG_DIA/len);
     color("purple",1) {
@@ -335,8 +336,8 @@ module BC_Arm_model(len=100) {
         translate([0,LUG_DIA,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA,center=true,$fn=FACETS);
     }
 }
-*BC_Arm_model(len=lenBC);
-*rotate([180,0,0]) BC_Arm_model(len=lenBC); // Export as STL... F7 (quantity 1)
+*BC_Arm(len=lenBC);
+*rotate([180,0,0]) BC_Arm(len=lenBC); // Export as STL... F7 (quantity 1)
 
 module BC_Arm_Cap() {
     color("lightblue") difference() {
@@ -349,7 +350,7 @@ module BC_Arm_Cap() {
 
 module BC_Assy() {
     // DRAW THE BC ARM 
-    translate([0,0,-OUTER_LUG_THK]) BC_Arm_model(len=lenBC);
+    translate([0,0,-OUTER_LUG_THK]) BC_Arm(len=lenBC);
     translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
     translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // switch
 }
@@ -490,7 +491,8 @@ module SelectorAssy(ang=0) {
 }
 if (display_selector) {
     difference() {
-        translate([LUG_DIA*2,0,0]) SelectorAssy();
+        // translate([LUG_DIA*2,0,0]) 
+            SelectorAssy();
         if (clip_yz) // x = xcp cut 
             translate ([-200.1+LUG_DIA*2,-100,-100]) cube (200,center=false);
     }
