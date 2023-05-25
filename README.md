@@ -10,6 +10,8 @@ The control code files are in the folder [MAKE3](/MAKE3).  and are written in [A
 
 ![MAKE3-Arm-gif](/Images/MAKE3_Arm_FlyAround.gif)
 
+![MAKE3 Nomenclature](/Images/MAKE3_Nomenclature.jpg)
+
 [Video of MAKE3 robot arm](https://www.wevideo.com/view/3040378114)
 
 ## MAKE3 Specification

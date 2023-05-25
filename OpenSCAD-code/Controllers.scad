@@ -11,9 +11,9 @@ use <ME_lib.scad> // contains forces, springs, MS modules and functions
 
 // Animation Commands to create an orbital fly-around:
 $vpr = [60, 0, -30];   // view point rotation (spins the part)
-$vpt = [-40,0,80];    // view point translation
+$vpt = [-50,0,70];    // view point translation
 $vpf = 50;          // view point field of view
-$vpd = 180;         // view point distance
+$vpd = 150;         // view point distance
 //
 
 // Parameters for Customizer:
@@ -22,12 +22,12 @@ $vpd = 180;         // view point distance
 AA = 90*sin($t*180);  // for animation
 // Joint B angle
 //BB = -35; // [-170:1:0.0]
-BB = 90*sin($t*180);  // for animation
+BB = -90*sin($t*180);  // for animation
 // Turntable angle
 //TT = 0; // [-90:90]
 TT = 60*sin($t*90);  // for animation
 // use 140 for printing, 40 for display
-FACETS = 40; // [40,140]
+FACETS = 100; // [40,140]
 
 // Draw the Input Arm Assembly?
 display_assy = true;
@@ -205,14 +205,12 @@ module PotLug() {  // Model of Potentiometer holder
 }
 *rotate([0,180,0]) PotLug(); // Export as STL... F7 (quantity 2)
 
-module NonPotLug(thk=OUTER_LUG_THK,notch=false) {  // Model of Potentiometer holder
+module NonPotLug(thk=OUTER_LUG_THK) {  // Model of Potentiometer holder
     color("green") difference() {
             union() {
             translate([0,0,MAIN_LUG_THK]) 
                 roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=thk,bore=POT_HOLE_DIA,$fn=FACETS);
             translate([-LUG_DIA/2,-FLAT_DIST,0]) cube([LUG_DIA,8.5,MAIN_LUG_THK],center=false);
-            if (notch) translate([0,LUG_DIA/2.2,MAIN_LUG_THK]) rotate([90,0,0])
-            linear_extrude(3,convexity=10) polygon(points=[[1.5,0],[0,-1.2],[-1.5,0]]);
         }
         // remove screw holes
         screwHoles(dia=LUG_DIA,shrink=true);
@@ -444,7 +442,7 @@ module bumpyLug(thk=2,bumps=10) {
     difference () {
         washer(d=LUG_DIA,t=thk,d_pin=1,center=false,$fn=FACETS);
         // remove potentiometer interfaces
-        translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
+        translate([0,0,-3.3]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
     }
     BUMP_Y = LUG_DIA/2.8;  // bump, y location
     //BUMP_RAD = 1;
@@ -460,7 +458,7 @@ module SelectorKnob(notch_rotation=0,thk=2,bumps=10) {
         union() {
             rotate([0,0,notch_rotation]) bumpyLug(thk=thk,bumps=bumps);
             linear_extrude(thk,convexity=10) 
-                polygon(points=[[LUG_DIA*0.2,LUG_DIA*0.2],[0,LUG_DIA*.8],[-LUG_DIA*0.2,LUG_DIA*0.2]]);
+                polygon(points=[[LUG_DIA*0.2,LUG_DIA*0.2],[LUG_DIA*0.2,LUG_DIA*0.8],[0,LUG_DIA*0.6],[-LUG_DIA*0.2,LUG_DIA*0.8],[-LUG_DIA*0.2,LUG_DIA*0.2]]);
                 }
             }
 }
@@ -478,23 +476,40 @@ module bumpyBaseCover(thk=2,bumps=10) {
 }
 *bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1); // Export as STL... F7 (quantity 1)
 
-*rotate([0,180,0]) NonPotLug(thk=1.3,notch=true); // Export as STL... F7 (quantity 1)
+module NonPotLugTooth() {  // Model of Potentiometer holder
+    thk = 1.5;
+    extraZ = 2.0;
+    color("lightgreen") difference() {
+            union() {
+            translate([0,0,MAIN_LUG_THK+extraZ]) 
+                roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=thk,bore=POT_HOLE_DIA,$fn=FACETS);
+            translate([-LUG_DIA/2,-FLAT_DIST,0]) cube([LUG_DIA,8.5,MAIN_LUG_THK+extraZ],center=false);
+            translate([0,LUG_DIA/2.2,MAIN_LUG_THK+extraZ]) rotate([90,0,0])
+            linear_extrude(3,convexity=10) polygon(points=[[1.5,0],[0,-1.6],[-1.5,0]]);
+        }
+        // remove screw holes
+        screwHoles(dia=LUG_DIA,shrink=true);
+    }
+}
+*rotate([0,180,0]) NonPotLugTooth(); // Export as STL... F7 (quantity 1)
+
+function anim_steps(val)= (val<0.25) ? -18 : ((val<0.5) ? 0 : 18);
 
 module SelectorAssy(ang=0) {
     PotLug(); 
-    translate([0,0,zbody]) P090L_pot(negative=false); 
-    translate([0,0,POT_LUG_THK]) NonPotLug(thk=1.3,notch=true); 
+    translate([0,0,zbody]) rotate([0,0,ang]) P090L_pot(negative=false); 
+    translate([0,0,POT_LUG_THK]) NonPotLugTooth(); 
     translate([0,0,-OUTER_LUG_THK]) 
         bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1);
-    translate([0,0,MAIN_LUG_THK+LUG_Z]) 
-        SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS-1); 
+    translate([0,0,MAIN_LUG_THK+LUG_Z+1.5]) 
+        rotate([0,0,ang]) SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS-1); 
 }
 if (display_selector) {
     difference() {
         // translate([LUG_DIA*2,0,0]) 
-            SelectorAssy();
+            SelectorAssy(ang=anim_steps($t));
         if (clip_yz) // x = xcp cut 
-            translate ([-200.1+LUG_DIA*2,-100,-100]) cube (200,center=false);
+            translate ([-200.1,-100,-100]) cube (200,center=false);
     }
 }
 //

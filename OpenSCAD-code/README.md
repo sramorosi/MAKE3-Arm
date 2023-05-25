@@ -1,4 +1,5 @@
 # OpenSCAD code for MAKE3-Arm
+
 This folder contains the OpenSCAD documents that define the MAKE3-Arm and Controllers.
  
 Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3D printing. 
@@ -8,6 +9,8 @@ For more information on how to make .stl files see [making STL models from OpenS
 Familiarity with OpenSCAD is required.
 
 The documents are divided into assemblies, to keep the files from getting large. There are three main assembly documents, shown below, and a number of other documents that are used to make these three main documents  
+
+![MAKE3 Nomenclature](/Images/MAKE3_Nomenclature.jpg)
 
 ## Claw_Assembly.scad
 
@@ -20,9 +23,9 @@ The documents are divided into assemblies, to keep the files from getting large.
 3. claw_bar (quantity 2), color SkyBlue
 4. base (quantity 1), color DodgerBlue
 
-### Claw Parts - Other 
+### Claw Parts - Purchased Parts
 
-1. Servo (quantity 1), model xxx, includes horn,horn screws, horn screw bushings
+1. Servo (quantity 1), At least 180 degree, at least 25 kg-cm, model ANNIMOS DS3225MG, includes horn,horn screws, horn screw bushings
 2. pins (quantity 4), Spring Steel Slotted Spring Pin, 5/64" Diameter, source McMaster Carr, part number yyyyy
 3. screws (quantity 4), attach servo to base
 4. foam window seal 
@@ -31,7 +34,7 @@ The documents are divided into assemblies, to keep the files from getting large.
 
 ![Controller_Arm](/Images/InputArm_FlyAround.gif)
 
-### Arm Controller Parts - 3D printed 
+### Input Arm Controller Parts - 3D printed 
 
 1. PotLug (quantity 2), color blue
 2. NonPotLug (quantity 2), color green
@@ -42,23 +45,23 @@ The documents are divided into assemblies, to keep the files from getting large.
 7. BC_Arm_Cap (quantity 1), color lightblue
 8. TA_Fitting (quantity 1), color lime
 
-### Arm Controller Parts - Other
+### Input Arm Controller Parts - Purchased Parts
 
 1. Potentiometer (quantity 3)
 2. Switch (quantity 1)
 
 ## Controllers.scad   (Selector Assembly controller shown)
 
-![Controller-Selector](/Images/Controller-Selector.png)
+![Controller-Selector](/Images/Controller-Selector.gif)
 
 ### Selector Parts - 3D printed 
 
 1. PotLug (quantity 1), color blue
-2. NonPotLug (quantity 1), color green
+2. NonPotLugTooth (quantity 1), color lightgreen
 3. bumpyBaseCover (quantity 1), color plum
 4. SelectorKnot (quantity 1), color DeepPink
 
-### Arm Controller Parts - Other
+### Selector Parts - Purchased Parts
 
 1. Potentiometer (quantity 1)
 
@@ -76,20 +79,40 @@ The documents are divided into assemblies, to keep the files from getting large.
 6. turntable_gear (quantity 1), color tomato
 7. Electronics_Board (quantity 1), color palegreen
 
-### MAKE3_Assy - Other
+### MAKE3_Assy - Purchased Hardware or other
 
 1. Claw Assebly from Claw_Assembly.scad
-2. Tubes for AB and BC arm
-3. Servos
-4. Servo gears
-5. Screws
-6. Bearings
-7. Axels
-8. Arduino Leonardo
-9. Adafruit Servo board
-10. Spring for joint A
-11. Servo block for joint C and D
+2. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061, Length = CAD length plus 1"
+3. Tube for BC arm: 1" square x 0.065" thick Aluminum tube, 6061, Length = CAD length plus 1"
+4. Joint A:
+    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
+    2. Servo Gear, 32 tooth, ServoCity
+    4. Screws to attach servo to block
+    5. Bearings for main shaft
+    6. Axel
+    7. Spring for joint A
+5. Joint B:
+    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
+    2. Servo Gear, 32 tooth, ServoCity
+    4. Screws to attach servo to block
+    5. Bearings for main shaft
+    6. Axel
+6. Joint C:
+    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
+    2. Servo Hub, ServoCity
+    4. Screws to attach servo to block
+6. Joint B:
+    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
+    2. Servo Block, ServoCity
 12. 2 by 4 wood for base
+
+### MAKE3_Assy - Electronics
+
+1. Battery - 7.4V Lipo 
+2. Arduino Leonardo
+3. Adafruit Servo board
+4. Switch 
+
 
 ### Making STL models from OpenSCAD
 

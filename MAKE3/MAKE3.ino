@@ -37,7 +37,7 @@
  *  Angle rate is in Degrees per second.
  *  Angles given in Degrees.  Locations in mm.
  */
-#define SIZE_CMD_ARRAY 5  // NUMBER OF VALUES PER COMMAND. Command array is 2 dimensional. This is number of commands per row.
+#define SIZE_CMD_ARRAY 5  // NUMBER OF VARIABLES PER COMMAND. 
 
 // Synchronous commands (completes command before next command is sent) -- see runCommand
 #define K_TIMER 1    // timer {milliseconds}
@@ -130,7 +130,6 @@ struct arm {  // as in Robot Arm
 };
 
 struct command {int arg[SIZE_CMD_ARRAY];};
-//  struct command sequences[10];  // This would be better struct sequence below
 
 struct sequence {  // An array of commands
   int nuHm_cmds;
@@ -699,14 +698,12 @@ float arcLen(float arcSize,float rad) {  // Arcsize in DEGREES,  rad is in mm
   return (arcSize/360) * 2.0  * (180.0 / RADIAN) * rad;
 }
 void readCommands(arm & the_arm, sequence & the_seq) {  // read through commands
-  //command cmdArray;
   if (the_arm.n > the_seq.nuHm_cmds || the_arm.n >= 999) {  // DONE RUNNING ARRAY OF COMMANDS
     return;  
   } else {
-    //cmdArray = the_cmds.cmd[the_arm.n]; // pull out the one command from the sequence
     if (runCommand(the_arm, the_seq, the_arm.n)) { // true = done = go to the next command
       the_arm.n = the_arm.n + 1; // go to the next command line
-      the_arm.line_len = 0.0; // this tells arcs that its the start of an arc
+      the_arm.line_len = 0.0;    // initialize line length
       the_arm.timerStart = millis();  // for timed commands
     };
     return;
@@ -921,7 +918,7 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
   static int new_x, new_y, new_z;  
   
   jS.pot_value = analogRead(jS.pot.analog_pin);  // read the selector
-  the_arm.state = jS.pot_value/75; // convert to an integer from  0 to 12
+  the_arm.state = (jS.pot_value-7)/79; // convert to an integer from  0 to 12
   // pot values are in the range of 100 to 920
   if (the_arm.state != old_state){
     switch (the_arm.state) {
@@ -932,9 +929,11 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
         the_arm.n = 0; // reset command pointer
         the_arm.loopCount = 0;   
         setCmd(seQ.cmd[0],K_LIFT,0,0,0,0);         // turn lift off
-        setCmd(seQ.cmd[1],K_LINE_G,100,450,250,200);  // move to start
+        setCmd(seQ.cmd[1],K_LINE_G,100,450,250,the_arm.target_pt.z);  // move to start
         setCmd(seQ.cmd[2],K_ORBIT_Z,  100, 450,250,180); // orbit, also sets the aim mode
-        setCmd(seQ.cmd[3],K_END,0,0,0,0); 
+        setCmd(seQ.cmd[3],K_TIMER,1000,0,0,0);    // 1 second delay
+        setCmd(seQ.cmd[4],K_ORBIT_Z,  100, 450,250,-180); // orbit back the other way
+        setCmd(seQ.cmd[5],K_END,0,0,0,0); 
          break;
       case S_AUTO_5:  // PREPARE FOR FIRST BLOCK GRAB
         the_arm.n = 0; // reset command pointer
@@ -944,8 +943,7 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
         setCmd(seQ.cmd[0],K_LIFT,0,0,0,0);          // turn lift off
         setCmd(seQ.cmd[1],K_LINE_G,300,250,200,-50);  // move to start
         setCmd(seQ.cmd[2],K_CLAW,  200,-15,500,0); // open claw and wait
-        setCmd(seQ.cmd[3],K_LIFT,0,0,0,0);  // toggle z-lift off
-        setCmd(seQ.cmd[4],K_END,0,0,0,0); 
+        setCmd(seQ.cmd[3],K_END,0,0,0,0); 
         break;      
       case S_AUTO_6:  // GRAB BLOCKS FROM FLOOR AND STACK
         the_arm.n = 0; // reset command pointer
@@ -1074,8 +1072,8 @@ void blink() { // Blink the built in LED to measure the HeartBeat (speed) of the
 }
 
 void loop() {  //########### MAIN LOOP ############
-  static command cmd = {0,0,0,0,0};  // used in Serial Read
-  static boolean runningCmd = false; // toggle for serial read
+  //static command cmd = {0,0,0,0,0};  // used in Serial Read
+  //static boolean runningCmd = false; // toggle for serial read
   point angles;  // used by inverseArmKin
   point c_pt;
 
@@ -1124,6 +1122,7 @@ void loop() {  //########### MAIN LOOP ############
       checkSwitch(clawSwitch);
       if (clawSwitch.isOn) make3.jCLAW.current_angle = 45.0/RADIAN;
       else make3.jCLAW.current_angle = -45.0/RADIAN;
+      make3.jCLAW.target_angle = make3.jCLAW.current_angle; // for Claw, target should equal current always
 
       //make3.target_pt = anglesToC(make3.jA.pot_angle,make3.jB.pot_angle,make3.jT.pot_angle,LEN_AB,LEN_BC);
       make3.target_pt = anglesToG(make3.jA.pot_angle,make3.jB.pot_angle,make3.jT.pot_angle,make3.jC.current_angle,make3.jD.current_angle,LEN_AB,LEN_BC,S_CG_X,S_CG_Y);
@@ -1139,7 +1138,11 @@ void loop() {  //########### MAIN LOOP ############
       loopUpdateHand(make3);  // HAND JOINT UPDATE 
       updateJointBySpeed(make3.jC, make3.dt);  
       updateJointBySpeed(make3.jD, make3.dt);  
- 
+
+      // HARD LIMIT to keeps the claw from contacting BC arm
+      if (make3.current_pt.z > (LEN_AB) ) make3.jC.target_angle = (-90.0+ (make3.current_pt.z-LEN_AB)/5.0)/RADIAN; 
+      else make3.jC.target_angle = -90.0/RADIAN;
+
       break;
     default:  // unspecified state should do nothing
       break;
