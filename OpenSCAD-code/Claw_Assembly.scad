@@ -78,7 +78,7 @@ module arc_link(L=30,R=30,THK=5,HGT=10) {
     }
 }
 
-module rod(L=30,R=30,THK=5,HGT=10) {
+module curved_link(L=30,R=30,THK=5,HGT=10) {
     color("blue") intersection() {
         arc_link(L=L,R=R,THK=THK,HGT=HGT+4);
         translate([HGT,0,-(HGT+4)/2]) rotate([0,-90,0]) 
@@ -88,7 +88,7 @@ module rod(L=30,R=30,THK=5,HGT=10) {
             [4+HGT,-THK],[4+HGT,2.5*THK],[4,L-THK],[4,2*L],[0,2*L]]);
     }
 }
-*rod(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
+*curved_link(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
 
 module guide() {  // BLOCK GUIDE
     THK = 2;  // guide thickness
@@ -172,7 +172,7 @@ module draw_assy (angClaw=90,angRod=0,claw=10,rod=5,AY=0,Y2=10,L=120,RODS=0.9) {
         claw_assy(L,D_FINGER_ROD); // Claw
         
         translate([claw,0,0]) rotate([0,0,angRod]) { // Rod
-            rotate([0,0,-90]) rod(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK,HGT=BAR_HGT);
+            rotate([0,0,-90]) curved_link(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK,HGT=BAR_HGT);
         }
     }
 }

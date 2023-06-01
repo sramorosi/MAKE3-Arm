@@ -1,7 +1,7 @@
 //  SAMC Make 3
 //  Servo Actuated Motion Control
 //
-//  By SrAmo,  May 2023
+//  By SrAmo,  June 2023
 //
 use <ME_lib.scad> // contains forces, springs, MS modules and functions
 include <Part-Constants.scad>
@@ -9,7 +9,7 @@ use <Robot_Arm_Parts_lib.scad>
 use <gears_involute.scad>  // Modified version of spur gears by Greg Frost
 use <Claw_Assembly.scad>
 
-DISPLAY_ASSY = true;
+DISPLAY_ASSY = true;  // set this to false when exporting STL files
 
 // Boolean for Animation related features
 ANIMATION_ON = false;
@@ -141,9 +141,9 @@ echo("A OUTPUT ANGLE=",1800*Asmall_gear_teeth/Abig_gear_teeth," DEG");
 // Maximum Motor Torque (gram-mm) 
 Motor_Max_Torque = 250000; 
 Geared_Max_Torque = Motor_Max_Torque * (big_gear_teeth/small_gear_teeth)*0.8;
-echo("SERVO MOTOR CAPABILITY=",Motor_Max_Torque=Motor_Max_Torque," gram-mm");
-echo("Big Gear teeth=",big_gear_teeth," Small Gear teeth =",small_gear_teeth);
-echo("GEARED SERVO CAPABILITY=",Geared_Max_Torque=Geared_Max_Torque," gram-mm");
+echo("B SERVO MOTOR CAPABILITY=",Motor_Max_Torque=Motor_Max_Torque," gram-mm");
+echo("B Big Gear teeth=",big_gear_teeth," Small Gear teeth =",small_gear_teeth);
+echo("B GEARED SERVO CAPABILITY=",Geared_Max_Torque=Geared_Max_Torque," gram-mm");
 
 
 module tube_model(t=1,wall=0.1,l=10) {
@@ -200,7 +200,7 @@ module servo_mount(FT6335=true) {
         }
     }
 
-*servo_mount(); // EXPORT AS STL, quantity 1
+*servo_mount(); // EXPORT AS STL, quantity 2
 
 module guss_profile(tube=wTube,gap=0.1,daxel=Qtr_bearing_od,dholes=3.5) {
     // 2D SHAPE.  Can write .svg
@@ -466,14 +466,14 @@ module CalculateMoments(display=false) {
         
     // MOMENT ON B, DUE TO CD AND BC
     B_trq = [ for (a = [0 : steps-1]) (BCweight*CM_BC+(PAYLOAD_MASS+CD_MASS)*LEN_BC)*cos(angles[a][0]+angles[a][1])+C_mom[a]];
-    Margin_Safety2(B_trq,Geared_Max_Torque,"B SERVO - GREEN");
+    Margin_Safety2(B_trq,Geared_Max_Torque,"B SERVO");
     *if (display) draw_3d_list(c,max_range/100,"green",B_trq/400); 
     *echo(B_trq=B_trq);
     
     B_trq_noload = [ for (a = [0 : steps-1]) (BCweight*CM_BC+(CD_MASS)*LEN_BC)*cos(angles[a][0]+angles[a][1])+CD_MASS*CM_CD*cos(angles[a][0]+angles[a][1]+angles[a][2])];
 
     A_trq_load_nospr = [ for (a = [0 : steps-1]) (ABweight*CM_AB+(BCweight+PAYLOAD_MASS+CD_MASS)*LEN_AB)*cos(angles[a][0])+ B_trq[a] ]; 
-    Margin_Safety2(A_trq_load_nospr,Geared_Max_Torque,"A SERVO - NO SPRING - BLUE");
+    Margin_Safety2(A_trq_load_nospr,Geared_Max_Torque,"A SERVO - NO SPRING");
     *if (display) draw_3d_list(c,max_range/80,"blue",A_trq_load_nospr/400); 
     *echo(A_trq_load_nospr=A_trq_load_nospr);
 
@@ -487,13 +487,13 @@ module CalculateMoments(display=false) {
     
     // calculate max A moment with full payload and spring
     A_trq_load_spr = [ for (a = [0 : steps-1]) A_trq_load_nospr[a] - A_spr_torque[a] ]; 
-    Margin_Safety2(A_trq_load_spr,Geared_Max_Torque,"A SERVO - SPRING - BLUE");
+    Margin_Safety2(A_trq_load_spr,Geared_Max_Torque,"A SERVO - SPRING");
     //echo(A_trq_load_spr=A_trq_load_spr);
     if (display) draw_3d_list(c,max_range/80,"blue",A_trq_load_spr/400); 
     
     // calculate max A moment with NO payload and spring (can be critical!)
     A_trq_noload_spr = [ for (a = [0 : steps-1]) (ABweight*CM_AB+(BCweight+CD_MASS)*LEN_AB)*cos(angles[a][0])+ B_trq_noload[a]  - A_spr_torque[a] ]; 
-    Margin_Safety2(A_trq_noload_spr,Geared_Max_Torque,"A SERVO - SPRING - NO PAYLOAD - Yellow");
+    Margin_Safety2(A_trq_noload_spr,Geared_Max_Torque,"A SERVO - SPRING - NO PAYLOAD");
     if (display) draw_3d_list(c,max_range/70,"yellow",A_trq_noload_spr/400); 
     *echo(A_trq_noload_spr=A_trq_noload_spr);
         

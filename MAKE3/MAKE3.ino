@@ -792,8 +792,8 @@ point path_orbit_xy(pathAngles & the_pathA,point center,int rad, float sweepAng)
 }
 //
 void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean liftMiddle,int lift) {  
-  // Build a G-point path from start to end, and align D-angle to aim at point aim
-  // Path increments (~velocity) are sized by a sine wave (vally to peak), to minimize accelerations
+  // Build a G-point path from start to end, and aligns D-angle to aim at point aim
+  // Path increments (equivalent to velocity) are sized by a sine wave from 0 to 180 deg, to minimize accelerations
   // ASSUMES THAT THE C JOINT IS -90 DEG ABSOLUTE (POINTING DOWN)
   //   since c joint is rotated -90, then S_CG_X is added to z 
   // ASSUMES THAT S_CG_Z IS ZERO (G POINT IS ALONG AXIS OF D SERVO)

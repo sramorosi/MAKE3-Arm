@@ -2,21 +2,15 @@
 
 This folder contains the Arduino Robot Arm control software for the MAKE3-Arm.
 
-It is written in the C programming language (not C++).  Variables have been grouped into structures using `struct`, to help organize the code.
+It is written in the C programming language (it does not use C++ objects).  Variables have been grouped into structures using `struct`, to help organize the code.
 
-An understanding of how microcontrollers works is required. Specifically there is an initialization function `setup()` and a repeating `loop()` function. For good robot arm performance it is important to let `loop()` loop as fast as possible. Slow loop can make the arm response jerky and potentially introduce unsteady dynamics. For reference, the MAKE3 runs about 15 milliseconds/loop while in remote control, and about 9 milliseconds/loop while in programmed mode.
+An understanding of how microcontrollers work is required. Specifically there is an initialization function `setup()` and a repeating `loop()` function. For good robot arm performance it is important to let `loop()` loop as fast as possible. Slow loops can make the arm response jerky and potentially introduce unsteady dynamics. For reference, the MAKE3 runs about 15 milliseconds/loop while in remote control, and about 9 milliseconds/loop while in programmed mode.
 
 The code is written to control the main arm using the control Input Arm and the Selector. See folder [OpenSCAD-code](/OpenSCAD-code) for the design of these two control devices.
 
 ## Main Loop
 
-Here is a **snapshot** of the main loop. The global variable `make3` is a `struct` that holds arm data. The AUTO or programmed mode uses function `readCommands` and there will be more on that later.  The TELE or remote control mode has a number of steps that make the movements smooth which are:
-
-1. First the potentiometers are read from the input control arm
-2. Second the point at the end of the arm is calculated from the potentiometer angles, which is the new target point
-3. Third the updateArmPtC function is called to move the current point toward the target point in a controlled move.  More on the later.
-4. Fourth, the joint angles are then solved for the desired current point using the Inverse Kinematics function
-5. Finally, the angles are sent to servo to make the arm move.  This is common for both AUTO and TELE.
+Here is a **snapshot** of the main loop. The global variable `make3` is a `struct` that organizes the arm data. You see 'switch (make3.state)' in the middle which handles the **state**, which is controlled by the selector. [See section on selector](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#highest-level-program-control-using-the-selector) 
 
 ```c++
 void loop() {  //########### MAIN LOOP ############
@@ -63,6 +57,17 @@ void loop() {  //########### MAIN LOOP ############
   //
 } // END OF MAIN LOOP
 ```
+
+There are two basic states:
+1. The AUTO or programmed mode uses function `readCommands` and there will be more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
+2. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code above below the line `case S_TELEOP_3:`  This is the flow:
+    1. The potentiometers are read from the input control arm using `analogRead` and mapped to angles using `pot_map`
+    2. The point at the end of the arm is calculated from the potentiometer angles using `anglesToG`. This becomes the new target point
+    3. The `updateArmPtC` function moves the current point toward the target point in a controlled move.  See [TELE code](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#tele-remote-control-code-outline)
+    4. The joint angles are then solved for the desired current point using the Inverse Kinematics function `inverseArmKin`. 
+    5. Finally, the angles are sent to servo to make the arm move using `pwm.writeMicroseconds`.  This is common for both AUTO and TELE (is outside of the switch)
+
+
 ## Highest level program control, using the Selector
 
 The Selector lets you pick one of multiple different programs for the arm
@@ -74,7 +79,7 @@ There are two main modes by which one can control the Arm:
 1. Remote Control (teleoperated or TELE) using the Control Arm
 2. Programmably (autonomously or AUTO) using command sequences within the code
 
-The different program modes (TELE or AUTO) are choosen using the Selector and are called STATES, which are defined by constants in the code. The following code block shows a few of the constants.
+The different program modes (TELE or AUTO) are chosen using the Selector and are called STATES, which are defined by constants in the code. The following code block shows a few of the constants.
 
 ```c++
 // STATES (or programs)  Controlled by the selector potentiometer.
@@ -87,7 +92,7 @@ The different program modes (TELE or AUTO) are choosen using the Selector and ar
 
 The remote control steps were outlined above in the Main Loop discussion. The function that provide smooth remote arm control is `updateArmPtC(arm & the_arm)` The function has three main features that provide the control: 
 
-1. There is a linear velocity limit `feedRate` on the movement of Joint C. This is implemented in the function updateArmPtC shown below.  The code keeps track of the Current C point, and when the user moves the control arm, a new Target C point is calculated.  The function limits how fast the arm can move from current to target. This prevent rapid movements of the arm when it is extended, which is when the most damage could occure.
+1. There is a linear velocity limit `feedRate` on the movement of Joint C. This is implemented in the function updateArmPtC shown below.  The code keeps track of the Current C point, and when the user moves the control arm, a new Target C point is calculated.  The function limits how fast the arm can move from current to target. This prevent rapid movements of the arm when it is extended, which is when the most damage could occur.
 
 2. The velocity is further decrease when the distance from current to target point is < RAMP_START_DIST (~50 mm), using this formula:  `newFeedRate = the_arm.feedRate * (the_arm.line_len/RAMP_START_DIST); `  This helps with the fine movements when picking and placing.
 
@@ -132,7 +137,7 @@ The autonomous **Programming Commands** are defined by constants. These commands
 #define K_END 99   // indicates to stop running commands
 ```
 
-Here is a **snapshot** of `readCommands`. At the moment, there is a global array of fixed length that holds commands.
+Here is a **snapshot** of `readCommands`. At the moment, there is a global 2D array of fixed length `seQ` that holds commands.
 
 ```c++
 #define SIZE_CMD_ARRAY 5  // NUMBER OF VARIABLES PER COMMAND 
@@ -162,7 +167,7 @@ void readCommands(arm & the_arm, sequence & the_seq) {  // read through commands
 }
 ```
 
-## EXAMPLE PROGRAM
+## Example Program
 
 Programs are initialized when the loop sees a new state that is an AUTO state. The initialization is done in the function `stateLoop(arm & the_arm)' Below is a **snapshot** from stateloop of a program to move to a point and get ready pick up something.  This is the method by which one programs the arm.
 
@@ -179,11 +184,62 @@ Programs are initialized when the loop sees a new state that is an AUTO state. T
         break;      
 ```
 
+### How K_LINE_G works
+
+The K_LINE_G command moves the arm grabber point **G** from one point to another point along a linear path, usually.  There is an option to **lift** the arm between the points. The function `path_line` builds an array of robot arm angles, on the fly, that will move the arm smoothly from start to end point. Here is a snapshot of the code:
+
+```c++
+void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean liftMiddle,int lift) {  
+  // Build a G-point path from start to end, and aligns D-angle to aim at point aim
+  // Path increments (equivalent to velocity) are sized by a sine wave from 0 to 180 deg, to minimize accelerations
+  // ASSUMES THAT THE C JOINT IS -90 DEG ABSOLUTE (POINTING DOWN)
+  //   since c joint is rotated -90, then S_CG_X is added to z 
+  // ASSUMES THAT S_CG_Z IS ZERO (G POINT IS ALONG AXIS OF D SERVO)
+  // If boolean liftMiddle == true then function (zLift = cos(a)*lift) is added to c.z 
+  int i;  
+  point angles;  // used to receive angles from IK
+  point c,g;
+  float g_dist, cg_vect_ang, d_aim_angle,lineLen,travel,a,angIncrement;
+
+  lineLen = ptpt_dist(start,end);  // 3d distance from point start to end
+  travel = 0.0;  // initialize travel
+  angIncrement = (180.0/RADIAN)/(PATH_SIZE-1);  // set angle increment
+  a = -90.0/RADIAN;   // initialize SINE WAVE FUNCTION
+  for(i=0;i<PATH_SIZE;++i) {
+    travel = (sin(a)+1.0)*lineLen/2.0;  // distance traveled, SINE WAVE FUNCTION
+    g = pt_on_line(travel,lineLen,start,end);
+
+    g_dist = ptpt_dist({0,0,0},{g.x,g.y,0});  // g distance from origin, xy only
+    cg_vect_ang = asin(g.y/g_dist) + asin(-S_CG_Y/g_dist) + 90.0/RADIAN;  // TRICKY TRIG HERE
+    c.x = g.x - S_CG_Y*cos(cg_vect_ang); // account for the S_CG_Y offset in both x and y
+    c.y = g.y - S_CG_Y*sin(cg_vect_ang);   
+
+    if (liftMiddle) c.z = g.z + S_CG_X + cos(a)*lift;  // add the lift function
+    else c.z = g.z + S_CG_X;        // don't add the lift function (straight line path)
+
+    inverseArmKin(c,LEN_AB,LEN_BC,angles); // feed c to the inverse function
+    the_pathA.a[i] = angles.x*ANGLE_SCALE;   // SCALE RADIANS AND STORE AS INTEGER
+    //the_pathA.a[i] = a*ANGLE_SCALE;   // SCALE RADIANS AND STORE AS INTEGER
+    the_pathA.b[i] = angles.y*ANGLE_SCALE;
+    the_pathA.c[i] = getCang(angles.x,angles.y,-90.0/RADIAN)*ANGLE_SCALE;
+    // USE AIM POINT TO FIND D ANGLE
+    d_aim_angle = atan2((aim.y-g.y),(aim.x-g.x));
+    the_pathA.d[i] = (angles.z - d_aim_angle)*ANGLE_SCALE;
+    the_pathA.t[i] = angles.z*ANGLE_SCALE; 
+
+    a = a + angIncrement;
+  }
+}
+```
+
+K_ORBIT works in a similar method to K_LINE_G, except that the path on the xy plane is an arc, and the aiming of the claw is toward the arc center.
+
+
 ## Electronics used in the MAKE3
 
 The microprocessor is an Arduino Leonardo, with an Adafruit Servo Shield.
 
-The controller is wired to the arm using sacrificed CAT-5 eithernet cable.
+The controller is wired to the arm using sacrificed CAT-5 Ethernet cable.
 
 The potentiometers in the controller are ...
 
