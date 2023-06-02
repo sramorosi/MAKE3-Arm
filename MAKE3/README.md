@@ -10,7 +10,7 @@ The code is written to control the main arm using the control Input Arm and the 
 
 ## Main Loop
 
-Here is a **snapshot** of the main loop. The global variable `make3` is a `struct` that organizes the arm data. You see 'switch (make3.state)' in the middle which handles the **state**, which is controlled by the selector. [See section on selector](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#highest-level-program-control-using-the-selector) 
+Here is a **snapshot** of the main loop. The global variable `make3` is a `struct` that organizes the arm data. In the middle of the code the statement `switch (make3.state)` uses the **state** to execute different lines. The state is controlled by the selector. [See section on selector](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#highest-level-program-control-using-the-selector) 
 
 ```c++
 void loop() {  //########### MAIN LOOP ############
@@ -59,13 +59,13 @@ void loop() {  //########### MAIN LOOP ############
 ```
 
 There are two basic states:
-1. The AUTO or programmed mode uses function `readCommands` and there will be more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
+1. The AUTO or programmed mode uses function `readCommands` and there is more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
 2. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code above below the line `case S_TELEOP_3:`  This is the flow:
     1. The potentiometers are read from the input control arm using `analogRead` and mapped to angles using `pot_map`
     2. The point at the end of the arm is calculated from the potentiometer angles using `anglesToG`. This becomes the new target point
     3. The `updateArmPtC` function moves the current point toward the target point in a controlled move.  See [TELE code](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#tele-remote-control-code-outline)
     4. The joint angles are then solved for the desired current point using the Inverse Kinematics function `inverseArmKin`. 
-    5. Finally, the angles are sent to servo to make the arm move using `pwm.writeMicroseconds`.  This is common for both AUTO and TELE (is outside of the switch)
+    5. Finally, the angles are sent to servo to make the arm move using `pwm.writeMicroseconds`.  This is common for both AUTO and TELE (is outside of the switch scope)
 
 
 ## Highest level program control, using the Selector
@@ -79,7 +79,7 @@ There are two main modes by which one can control the Arm:
 1. Remote Control (teleoperated or TELE) using the Control Arm
 2. Programmably (autonomously or AUTO) using command sequences within the code
 
-The different program modes (TELE or AUTO) are chosen using the Selector and are called STATES, which are defined by constants in the code. The following code block shows a few of the constants.
+The different program modes (TELE or AUTO) are chosen using the Selector and are called **states**, which are defined by constants in the code. The following code block shows a few of the state constants.
 
 ```c++
 // STATES (or programs)  Controlled by the selector potentiometer.
@@ -169,7 +169,7 @@ void readCommands(arm & the_arm, sequence & the_seq) {  // read through commands
 
 ## Example Program
 
-Programs are initialized when the loop sees a new state that is an AUTO state. The initialization is done in the function `stateLoop(arm & the_arm)' Below is a **snapshot** from stateloop of a program to move to a point and get ready pick up something.  This is the method by which one programs the arm.
+Programs are initialized when the loop sees a new state that is an AUTO state. The initialization is done in the function `stateLoop(arm & the_arm)` Below is a **snapshot** from stateloop of a program to move to a point and get ready pick up something.  This is the method by which one programs the arm.
 
 ```c++
       case S_AUTO_5:  // PREPARE FOR FIRST BLOCK GRAB
@@ -237,12 +237,12 @@ K_ORBIT works in a similar method to K_LINE_G, except that the path on the xy pl
 
 ## Electronics used in the MAKE3
 
-The microprocessor is an Arduino Leonardo, with an Adafruit Servo Shield.
+Here is the bill of material for the electronics (minus the servos and potentiometers listed above):
 
-The controller is wired to the arm using sacrificed CAT-5 Ethernet cable.
-
-The potentiometers in the controller are ...
-
+1. The microprocessor is an Arduino Leonardo (Note: an Arduino Uno does not work correctly with the Adafruit Servo Shield)
+1. Adafruit Servo Shield
+1. Wires from controller to Arduino/Shield. The positive and ground wires can be common for all potentiometers). I have sacrificed CAT-5 Ethernet cable, which have four twisted pairs, or eight wires, so one can wire up to six potentiometers/switches along with the positive and ground wires 
+1. Misc. connectors for the battery and switch
 
 
 

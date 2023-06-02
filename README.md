@@ -1,6 +1,6 @@
 # MAKE3-Arm
 
-This repository contains the complete design for the MAKE3 Robot Arm, controller, and the code to control the arm (both remote control and programmable).  This is intended to be a low-cost (less than US $ 200), Do it yourself (mostly 3D printed or made with common shop tools), remote controlled robot arm. It can be used for stacking/unstacking things for fun, delivering candy things without getting too close (i.e. prevent germ spreading), and as a learning tool whereby you learn by making.
+This repository contains the complete design for the MAKE3 Robot Arm, controller, and the code to control the arm (both remote control and programmable).  This is intended to be a low-cost (less than US $ 200), Do it yourself (mostly 3D printed or made with common shop tools), remote controlled robot arm. It can be used for stacking/unstacking things for fun, delivering things without getting too close (i.e. prevent germ spreading), and as a learning tool whereby you learn by making.
 
 The design files are in the folder [OpenSCAD-code](/OpenSCAD-code) and are written in [OpenSCAD](https://openscad.org/).
 
@@ -31,7 +31,7 @@ This project is intended as a low cost teaching tool to describe how to design, 
 
 1. Mechanical design of joints (strong, robust, accurate)
 1. Principles of Statics (forces and torques/moments)
-1. How to create smooth natural remote control
+1. How to create smooth remote control
 1. How to synchronize the control of multiple servos
 1. How to make programmed commands fast and smooth
 1. How to use trigonometry to get arm angles from a desired point - Inverse Kinematics
