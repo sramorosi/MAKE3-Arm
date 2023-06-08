@@ -1,6 +1,6 @@
 # OpenSCAD code for MAKE3-Arm
 
-This folder contains the OpenSCAD documents that define the MAKE3-Arm and Controllers.
+This folder contains the OpenSCAD files that define the MAKE3-Arm and Controllers.
 
 Familiarity with OpenSCAD is required, to make the files for printing and to interogate the design.
  
@@ -18,7 +18,7 @@ Note: OpenSCAD is a Functional Programming Language, and as such one cannot rede
 
 Labeled photo of the MAKE3 arm.
 
-The next sections provide the **Bill of Materials** for the MAKE3 arm and control devices, organized by the OpenSCAD files. The files are divided into major assemblies, to keep the files from getting large. There are three major assembly documents (Claw_Assembly, Controllers, and the MAKE3_Assy) and a number of other "included" files that are used to make these three main documents ("use" is another type of included file in OpenSCAD).   Within the files, there are `modules` or `functions` that break up the code into sub-assemblies, details and other functions.
+The next sections provide the **Bill of Materials** for the MAKE3 arm and control devices, organized by the OpenSCAD files. The files are divided into major assemblies, to keep the files from getting large. There are three major assembly files (Claw_Assembly, Controllers, and the MAKE3_Assy) and a number of other "included" files that are used with these three main files ("use" is another type of included file in OpenSCAD).   Within the files, there are `modules` or `functions` that break up the code into sub-assemblies, details and other functions.
 
 ## MAKE3_Assy.scad (imports Claw_Assembly.scad)
 
@@ -189,6 +189,6 @@ The Animation function **Animate** in OpenSCAD can be toggled on under the **Vie
 
 ![MAKE3 Animation Example](/Images/OpenSCAD_Animation.jpg)
 
-While **Animate** is running, enter numbers for FPS and Steps, and check the "Dump Pictures" box juat above the console window.  One picture will be created for each frame and saved in the same folder as your OpenSCAD document.
+While **Animate** is running, enter numbers for FPS and Steps, and check the "Dump Pictures" box just above the console window.  One picture will be created for each frame and saved in the same folder as your OpenSCAD file.
 
 Use the free tool at EZGIF.COM [here](https://ezgif.com/maker) to make a gif or video.  Upload all of the dumped pictures and follow the steps for making a gif.
