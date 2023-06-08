@@ -1,6 +1,6 @@
 # MAKE3-Arm
 
-This repository contains the complete design for the MAKE3 Robot Arm, controller, and the code to control the arm (both remote control and programmable).  This is intended to be a low-cost (less than US $ 250), Do it yourself (mostly 3D printed or made with common shop tools), remote controlled robot arm. It can be used for stacking/unstacking things for fun, delivering things without getting too close, as a learning tool whereby you learn by making, ang much more.
+This repository contains the complete design for the MAKE3 Robot Arm, controller, and the code to control the arm (both remote control and programmable).  This is intended to be a low-cost (less than US $ 250), do it yourself (mostly 3D printed or made with common shop tools), remote controlled robot arm. It can be used for stacking/unstacking things for fun, delivering things without getting too close, as a learning tool whereby you learn by making, and much more.
 
 The design files are in the folder [OpenSCAD-code](/OpenSCAD-code) and are written in [OpenSCAD](https://openscad.org/).  This page contains the **Bill of Materials** for making the MAKE3 Robot Arm, along with notes about what drove the design.
 
