@@ -9,12 +9,12 @@
 //        then  Export as STL (F7)
 use <ME_lib.scad> // contains forces, springs, MS modules and functions
 
-// Animation Commands to create an orbital fly-around:
+/* Animation Commands to create an orbital fly-around:
 $vpr = [60, 0, -30];   // view point rotation (spins the part)
 $vpt = [-50,0,70];    // view point translation
 $vpf = 50;          // view point field of view
 $vpd = 150;         // view point distance
-//
+*/
 
 // Parameters for Customizer:
 // Joint A angle
@@ -260,6 +260,11 @@ module joint_visuals(cut=true) { // Use for cross section cuts of Joints
 }
 *joint_visuals(cut=true); // not for print
 
+module zip_holes() {
+    translate([0,3.5,0]) cylinder(h=20,d=2.5,center=true,$fn=36);
+    translate([0,-3.5,0]) cylinder(h=20,d=2.5,center=true,$fn=36);
+}
+
 module AB_Arm(len=100) {
     color("plum",1) difference () {
         union() {
@@ -278,6 +283,7 @@ module AB_Arm(len=100) {
                 translate([0,-LUG_DIA/2,LUG_Z]) 
                     cube([len-LUG_DIA/1.2,LUG_DIA,MAIN_LUG_THK],center=false);
                 cylinder(h=40,d=8,center=true,$fn=FACETS); // for the pot
+                translate([len/2,0,0]) zip_holes();
            }
         }
     }
@@ -314,11 +320,12 @@ module switch(negative = false) {  //12x12x5mm Mini/Micro/Small PCB Momentary Ta
 module BC_Arm(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
     angSin = asin(LUG_DIA/len);
+    upSizeElbow = 2;
     color("purple",1) {
         // lug at 0,0
         difference() {
             rotate([0,0,180]) 
-                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA,thk=MAIN_LUG_THK,bore=3);
+                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA-upSizeElbow,thk=MAIN_LUG_THK,bore=3);
             // remove potentiometer interface
             translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
         }
@@ -329,12 +336,12 @@ module BC_Arm(len=100) {
                 rotate([0,0,-90-angSin]) 
                  roundTopLug(dia=LUG_DIA*0.85,hgt=len+4,thk=MAIN_LUG_THK,bore=SCREW_DIA,$fn=FACETS);
                 rotate([90,0,90]) translate([0,-1,3]) switch(true,$fn=FACETS);
+                
+                translate([-len/2,10,0]) zip_holes();
             } 
-        
-        translate([0,LUG_DIA,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA,center=true,$fn=FACETS);
+        translate([upSizeElbow,LUG_DIA-upSizeElbow-0.6,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA+2*upSizeElbow,center=true,$fn=FACETS);
     }
 }
-*BC_Arm(len=lenBC);
 *rotate([180,0,0]) BC_Arm(len=lenBC); // Export as STL... F7 (quantity 1)
 
 module BC_Arm_Cap() {

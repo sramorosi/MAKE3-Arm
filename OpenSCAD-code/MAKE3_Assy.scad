@@ -12,7 +12,7 @@ use <Claw_Assembly.scad>
 DISPLAY_ASSY = true;  // set this to false when exporting STL files
 
 // Boolean for Animation related features
-ANIMATION_ON = false;
+ANIMATION_ON = true;
 /* Animation Commands to create an orbital fly-around:
 // view point rotation (spins the part)
 // view point translation
@@ -34,7 +34,7 @@ steps = 40; // [2:1:200]
 // Output the moment calculation in the error log window
 ECHO_MOMENTS = ANIMATION_ON ? false : true;  
 // Joint A angle
-AA = ANIMATION_ON ? 90*sin(45+$t*45) : 135;
+AA = ANIMATION_ON ? 90*sin(45+$t*45) : 0;
 // Joint B angle
 BB = ANIMATION_ON ? -30*sin($t*180)-90 : -100; // [-175:1:0]
 // Joint C angle
@@ -111,12 +111,12 @@ A_theta_zero = 90;
 // Angle ratio (360/180) = 2.0    2 * 32 = 64
 // with 360 servo and 70/32 gears, arm angle = 164 deg
 
-// Large gear at Joint A and B, Printed
-big_gear_teeth = 70; 
-// Small gear at Joint A and B, Servo Mount Gear from ServoCity
-small_gear_teeth = 32; 
+// Large gear at Joint B
+B_big_gear_teeth = 70; 
+// Small gear at Joint B Servo Mount, Gear from ServoCity
+B_small_gear_teeth = 32; 
 // Turntable big  gear (printed)
-TT_BIG_GEAR = 64;
+TT_BIG_GEAR = 80;
 // Turntable small gear (Servo Mount Gear from ServoCity)
 TT_SMALL_GEAR = 32;
 
@@ -126,25 +126,27 @@ WIDTH = 233;   // Inside width
 WOOD_T = 3.0/mm_inch;  
 WOOD_W = 1.75/mm_inch;
 
-// Large gear at Joint A and B, Printed
-Abig_gear_teeth = 70;   // increase to 140 for make 4
-// Small gear at Joint A and B, Servo Mount Gear from ServoCity
-Asmall_gear_teeth = 32;   // decrease to 15 for make 4
+// Maximum Motor Torque (gram-mm) 
+BMotor_Max_Torque = 250000; 
+BGeared_Max_Torque = BMotor_Max_Torque * (B_big_gear_teeth/B_small_gear_teeth);
+echo("B SERVO MOTOR CAPABILITY=",BMotor_Max_Torque," gram-mm");
+echo("B Big Gear teeth=",B_big_gear_teeth," B_Small Gear teeth =",B_small_gear_teeth);
+echo("B GEARED SERVO CAPABILITY=",BGeared_Max_Torque=BGeared_Max_Torque," gram-mm");
+
+// Large gear at Joint A
+Abig_gear_teeth = 80;   
+// Small gear at Joint A Servo Mount, Gear from ServoCity
+Asmall_gear_teeth = 32;
 // Maximum Motor Torque (gram-mm) 
 AMotor_Max_Torque = 250000; 
-AGeared_Max_Torque = AMotor_Max_Torque * (Abig_gear_teeth/Asmall_gear_teeth)*0.8;
-echo("A SERVO MOTOR CAPABILITY=",AMotor_Max_Torque=AMotor_Max_Torque," gram-mm");
-echo("A Big Gear teeth=",Abig_gear_teeth," ASmall Gear teeth =",small_gear_teeth);
+AGeared_Max_Torque = AMotor_Max_Torque * (Abig_gear_teeth/Asmall_gear_teeth);
+echo("A SERVO MOTOR CAPABILITY=",AMotor_Max_Torque," gram-mm");
+echo("A Big Gear teeth=",Abig_gear_teeth," ASmall Gear teeth =",Asmall_gear_teeth);
 echo("A GEARED SERVO CAPABILITY=",AGeared_Max_Torque=AGeared_Max_Torque," gram-mm");
-echo("A OUTPUT ANGLE=",1800*Asmall_gear_teeth/Abig_gear_teeth," DEG");
+echo("A OUTPUT ANGLE=",360*Asmall_gear_teeth/Abig_gear_teeth," DEG");
 
-// Maximum Motor Torque (gram-mm) 
-Motor_Max_Torque = 250000; 
-Geared_Max_Torque = Motor_Max_Torque * (big_gear_teeth/small_gear_teeth)*0.8;
-echo("B SERVO MOTOR CAPABILITY=",Motor_Max_Torque=Motor_Max_Torque," gram-mm");
-echo("B Big Gear teeth=",big_gear_teeth," Small Gear teeth =",small_gear_teeth);
-echo("B GEARED SERVO CAPABILITY=",Geared_Max_Torque=Geared_Max_Torque," gram-mm");
-
+echo("Turtable Big Gear teeth=",TT_BIG_GEAR," Turntable Small Gear teeth =",TT_SMALL_GEAR);
+echo("TURNTABLE OUTPUT ANGLE=",360*TT_SMALL_GEAR/TT_BIG_GEAR," DEG");
 
 module tube_model(t=1,wall=0.1,l=10) {
     color("grey") linear_extrude(height=l, convexity=10) difference() {
@@ -247,7 +249,7 @@ module plain_guss() {
 
 module B_gear_guss(teeth=10) {
     color("aqua") union() {
-        32P_Actobotics(teeth=big_gear_teeth,thickness=8,bore=Qtr_bearing_od);    
+        32P_Actobotics(teeth=B_big_gear_teeth,thickness=8,bore=Qtr_bearing_od);    
         linear_extrude(8, convexity=10) guss_profile(tube=wTube,gap=armSpace,daxel=Qtr_bearing_od,dholes=3.5);
     }
 }
@@ -365,7 +367,7 @@ module CD_assy(t_C=0,t_D=0) {
 
 module BC_arm_assy(armLen = 100,t_C=0,t_D=0){
     // fixed tube assy
-    B_gear_guss(teeth=big_gear_teeth);
+    B_gear_guss(teeth=B_big_gear_teeth);
     translate([0,0,-wTube-2*armSpace]) plain_guss();
 
     // BC tube
@@ -398,7 +400,7 @@ module AB_arm_assy(armLen = 100){
     
     // THE B GEAR
     translate([-armLen,0,0]) rotate([0,0,180]) 
-        geared_svo_block_assy(big_gear_teeth=big_gear_teeth,small_gear_teeth=small_gear_teeth,wbeam=wTube);
+        geared_svo_block_assy(big_gear_teeth=B_big_gear_teeth,small_gear_teeth=B_small_gear_teeth,wbeam=wTube);
     
     spring_combo();
 }
@@ -419,14 +421,14 @@ module turntable_gear(teeth = 30,thickness=6) {
 module TA_assy() { // Assy between Turntable and joint A
     
     A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true);
-    A_gear_lollypop(teeth=big_gear_teeth,gear_side=false);
+    A_gear_lollypop(teeth=70,gear_side=false);
     
     length=4/mm_inch; // length of hex shaft
     translate([0,-wTube*3/4,0]) rotate([90,0,0])  
         color("RoyalBlue") hex (size=0.5/mm_inch,l=length);
     
     z_offset = -A_HEIGHT-wTube-WOOD_W-5;
-    rotate([-90,0,0]) translate([0,0,z_offset]) 
+    rotate([90,0,0]) translate([0,0,-z_offset-16]) 
         turntable_gear(teeth = TT_BIG_GEAR,thickness=8);
     
     rotate([-90,0,0]) translate([0,0,z_offset+5]) half_inch_hex_hub();
@@ -462,18 +464,18 @@ module CalculateMoments(display=false) {
     //d = [ for (a = [0 : steps-1]) [c[a][0]+LEN_CD*cos(angles[a][2]),c[a][1]+LEN_CD*sin(angles[a][2]),0]];
     
     C_mom = [ for (a = [0 : steps-1]) (PAYLOAD_MASS*LEN_CD+CD_MASS*CM_CD)*cos(angles[a][0]+angles[a][1]+angles[a][2]) ];
-    Margin_Safety2(C_mom,Motor_Max_Torque,"C moment");
+    Margin_Safety2(C_mom,BMotor_Max_Torque,"C SERVO");
         
     // MOMENT ON B, DUE TO CD AND BC
     B_trq = [ for (a = [0 : steps-1]) (BCweight*CM_BC+(PAYLOAD_MASS+CD_MASS)*LEN_BC)*cos(angles[a][0]+angles[a][1])+C_mom[a]];
-    Margin_Safety2(B_trq,Geared_Max_Torque,"B SERVO");
+    Margin_Safety2(B_trq,BGeared_Max_Torque,"B SERVO");
     *if (display) draw_3d_list(c,max_range/100,"green",B_trq/400); 
     *echo(B_trq=B_trq);
     
     B_trq_noload = [ for (a = [0 : steps-1]) (BCweight*CM_BC+(CD_MASS)*LEN_BC)*cos(angles[a][0]+angles[a][1])+CD_MASS*CM_CD*cos(angles[a][0]+angles[a][1]+angles[a][2])];
 
     A_trq_load_nospr = [ for (a = [0 : steps-1]) (ABweight*CM_AB+(BCweight+PAYLOAD_MASS+CD_MASS)*LEN_AB)*cos(angles[a][0])+ B_trq[a] ]; 
-    Margin_Safety2(A_trq_load_nospr,Geared_Max_Torque,"A SERVO - NO SPRING");
+    Margin_Safety2(A_trq_load_nospr,AGeared_Max_Torque,"A SERVO - NO SPRING");
     *if (display) draw_3d_list(c,max_range/80,"blue",A_trq_load_nospr/400); 
     *echo(A_trq_load_nospr=A_trq_load_nospr);
 
@@ -487,13 +489,13 @@ module CalculateMoments(display=false) {
     
     // calculate max A moment with full payload and spring
     A_trq_load_spr = [ for (a = [0 : steps-1]) A_trq_load_nospr[a] - A_spr_torque[a] ]; 
-    Margin_Safety2(A_trq_load_spr,Geared_Max_Torque,"A SERVO - SPRING");
+    Margin_Safety2(A_trq_load_spr,AGeared_Max_Torque,"A SERVO - SPRING");
     //echo(A_trq_load_spr=A_trq_load_spr);
     if (display) draw_3d_list(c,max_range/80,"blue",A_trq_load_spr/400); 
     
     // calculate max A moment with NO payload and spring (can be critical!)
     A_trq_noload_spr = [ for (a = [0 : steps-1]) (ABweight*CM_AB+(BCweight+CD_MASS)*LEN_AB)*cos(angles[a][0])+ B_trq_noload[a]  - A_spr_torque[a] ]; 
-    Margin_Safety2(A_trq_noload_spr,Geared_Max_Torque,"A SERVO - SPRING - NO PAYLOAD");
+    Margin_Safety2(A_trq_noload_spr,AGeared_Max_Torque,"A SERVO - SPRING - NO PAYLOAD");
     if (display) draw_3d_list(c,max_range/70,"yellow",A_trq_noload_spr/400); 
     *echo(A_trq_noload_spr=A_trq_noload_spr);
         
@@ -653,5 +655,5 @@ module draw_letters(t_A=0,t_B=0,t_C=0,t_D=0,t_T=0) {
 
 if (DISPLAY_ASSY) difference () {
     draw_assy (t_A=AA,t_B=BB,t_C=CC,t_D=DD,t_T=TT); 
-    //translate([-100,0,-100]) cube([1000,1000,1000]);
+    //translate([0,0,0]) cube([1000,1000,1000]);  // section cut
 }

@@ -1,50 +1,59 @@
 # OpenSCAD code for MAKE3-Arm
 
 This folder contains the OpenSCAD documents that define the MAKE3-Arm and Controllers.
- 
-Use these documents to create the .stl (STL or stereolithography or Standard Triangle Language) files for 3D printing. For more information on how to make .stl files see [making STL models from OpenSCAD](#making-stl-models-from-openscad)
 
-Familiarity with OpenSCAD is required.  The OpenSCAD design files are text files that contain the code for making the designs.  OpenSCAD is a Functional Programming Language, and as such one cannot redefine a variable once it has been set.  Most of the CAD code looks like "simple" programming but for computations involving arrays it becomes more complex.
+Familiarity with OpenSCAD is required to make the files for printing and to interogate the design.
+ 
+The OpenSCAD design files are text files that contain the code for making the designs.  Use these design files to create the .stl files (STL or STereoLithography or Standard Triangle Language) for 3D printing. For more information on how to make .stl files see [making STL models from OpenSCAD](#making-stl-models-from-openscad)
+
+The objective with MAKE3 was to make the design variable-driven (the variables are mostly at the top of each file and should work with the OpenSCAD **Customizer**).
+
+Another objective was to perform some Engineering calculations on the design, using the variables, so one can quickly see if a design will work.
+
+Another objective was to make the 3D printed parts not require supports when printing, to speed up the printing and make accurate parts (small, accurate, fast to print).
+
+Note: OpenSCAD is a Functional Programming Language, and as such one cannot redefine a variable once it has been set.  Most of the code is "simple" programming but for computations involving arrays it becomes more complex.
 
 ![MAKE3 Nomenclature](/Images/MAKE3_Nomenclature.jpg)
 
-This is a photo of the MAKE3 arm, along with the names of some things.
+Labeled photo of the MAKE3 arm.
 
-The next sections provide the bill of materials for the MAKE3 arm and control devices, organized by the OpenSCAD documents. The documents are divided into assemblies, to keep the files from getting large. There are three main assembly documents (Claw_Assembly, Controllers, MAKE3_Assy) and a number of other "included" documents that are used to make these three main documents ("use" is another type of included document in OpenSCAD).
+The next sections provide the **Bill of Materials** for the MAKE3 arm and control devices, organized by the OpenSCAD files. The files are divided into major assemblies, to keep the files from getting large. There are three major assembly documents (Claw_Assembly, Controllers, and the MAKE3_Assy) and a number of other "included" files that are used to make these three main documents ("use" is another type of included file in OpenSCAD).   Within the files, there are `modules` or `functions` that break up the code into sub-assemblies, details and other functions.
 
 ## MAKE3_Assy.scad (imports Claw_Assembly.scad)
 
 ![MAKE3-Arm-gif](/Images/MAKE3_Arm_FlyAround.gif)
 
-This is a .gif animation created in OpenSCAD. [How to make gifs](https://github.com/sramorosi/MAKE3-Arm/tree/main/OpenSCAD-code#making-animation-gif-or-video-files-from-openscad)
+GIF animation of the MAKE3 Robot Arm created in OpenSCAD. 
+[See how to make gifs here](https://github.com/sramorosi/MAKE3-Arm/tree/main/OpenSCAD-code#making-animation-gif-or-video-files-from-openscad)
 
-The objective with MAKE3 was to make the design variable-driven (the variables are mostly at the top of each file and should work with the OpenSCAD **Customizer**). Another objective was to find the largest torque on the A, B and C servos to find out if a design will work.  These torques are echoed to the console window, as shown below, and will change as the variables are changed:
+The Engineering calculations performed in the MAKE3_Assy file are to find the largest torque on the A, B and C servos.  From these torques a Margin of Safety (MS)calculation is performed to find out if the selected design (servo, gearing, link lengths, etc)will work (that is have a positive MS).  These torques are echoed to the console window, as shown below, and will change as the variables are changed:
 
 ```
 ECHO: LEN_AB = 350, LEN_BC = 380, LEN_CD = 160, PAYLOAD_MASS = 200
 ECHO: BCweight = 259.774, ABweight = 336.371, " grams"
-ECHO: "A SERVO MOTOR CAPABILITY=", AMotor_Max_Torque = 250000, " gram-mm"
-ECHO: "A Big Gear teeth=", 70, " ASmall Gear teeth =", 32
-ECHO: "A GEARED SERVO CAPABILITY=", AGeared_Max_Torque = 437500, " gram-mm"
-ECHO: "A OUTPUT ANGLE=", 822.857, " DEG"
-ECHO: "B SERVO MOTOR CAPABILITY=", Motor_Max_Torque = 250000, " gram-mm"
-ECHO: "B Big Gear teeth=", 70, " Small Gear teeth =", 32
-ECHO: "B GEARED SERVO CAPABILITY=", Geared_Max_Torque = 437500, " gram-mm"
-ECHO: "C moment", " MARGIN OF SAFETY ", MS = 4.20833, max_load = 48000, pos = 4
-ECHO: "B SERVO " MARGIN OF SAFETY ", MS = 0.687701, max_load = 259228, pos = 4
-ECHO: "A SERVO - NO SPRING", " MARGIN OF SAFETY ", MS = -0.203117, max_load = 549014, pos = 4
+ECHO: "B SERVO MOTOR CAPABILITY=", 250000, " gram-mm"
+ECHO: "B Big Gear teeth=", 70, " B_Small Gear teeth =", 32
+ECHO: "B GEARED SERVO CAPABILITY=", BGeared_Max_Torque = 546875, " gram-mm"
+ECHO: "A SERVO MOTOR CAPABILITY=", 250000, " gram-mm"
+ECHO: "A Big Gear teeth=", 80, " ASmall Gear teeth =", 32
+ECHO: "A GEARED SERVO CAPABILITY=", AGeared_Max_Torque = 625000, " gram-mm"
+ECHO: "A OUTPUT ANGLE=", 144, " DEG"
+ECHO: "Turtable Big Gear teeth=", 80, " Turntable Small Gear teeth =", 32
+ECHO: "TURNTABLE OUTPUT ANGLE=", 144, " DEG"
+ECHO: "C SERVO", " MARGIN OF SAFETY ", MS = 4.20833, max_load = 48000, pos = 4
+ECHO: "B SERVO", " MARGIN OF SAFETY ", MS = 1.10963, max_load = 259228, pos = 4
+ECHO: "A SERVO - NO SPRING", " MARGIN OF SAFETY ", MS = 0.138404, max_load = 549014, pos = 4
 ECHO: A_spr_torque_min = -170310, A_spr_torque_max = 218970
-ECHO: "A SERVO - SPRING", " MARGIN OF SAFETY ", MS = 0.258321, max_load = 347685, pos = 9
-ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 1.45333, max_load = -178329, pos = 20
-```
+ECHO: "A SERVO - SPRING", " MARGIN OF SAFETY ", MS = 0.797602, max_load = 347685, pos = 9
+ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 2.50475, max_load = -178329, pos = 20```
 
 The largest moments are attempted to be found by performing the calculations on a range of positions, using `function sweep1`. The largest moment values sometime show up at unusual positions. A **static** calculation is performed at each position.  No **dynamic** calculations are performed, and because of this one should have healthy static margins.
 
-This design has a **torsion spring** located at joint A, which helps reduce the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (MS = -0.203117)... negative MS is BAD.  With a spring MS = 0.258321.
+This design has a **torsion spring** located at joint A, which helps reduce the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (MS = 0.13...) a small or negative MS is BAD.  With a spring MS = 0.79...  I have found with a MS less than 0.5 that the servos tend to heat up quickly, damaging the servos (I have killed many servos along the way).
 
-Another objective of the design was to make the 3D printed parts not require supports when printing, to speed up the printing.  
 
-Here is the bill of materials:
+Here is the **Bill of Materials**:
 
 ### MAKE3_Assy - 3D printed
 
@@ -59,21 +68,18 @@ Here is the bill of materials:
 ### MAKE3_Assy - Purchased Hardware or other
 
 1. Claw Assembly - See Claw_Assembly.scad
-1. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061, Length = CAD length plus 1"
-1. Tube for BC arm: 1" square x 0.065" thick Aluminum tube, 6061, Length = CAD length plus 1"
+1. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061. This tube is stiff torsionally and the wires can run inside of it.
+1. Tube for BC arm: 1" square x 0.065" thick Aluminum tube, 6061. 
 1. Joint A:
     1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
-    2. Servo Gear, 32 tooth, ServoCity
-    4. Screws to attach servo to block
+    2. Servo Gear, 32P, 32 Tooth, 25T 3F Spline Servo Mount Gear, from ServoCity
+    4. Screws to attach servo to block, Phillips Rounded Head Thread-Forming Screws
+for Plastic, 18-8 Stainless Steel, Number 4 Size, 1/2" Long
     5. Bearings for main shaft
-    6. Axel
-    7. Spring for joint A
-1. Joint B:
-    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
-    2. Servo Gear, 32 tooth, ServoCity
-    4. Screws to attach servo to block
-    5. Bearings for main shaft
-    6. Axel
+    6. Axel, 1/4 inch bolt, or for better precision Rotary Shaft, 303 Stainless Steel, 1/4" Diameter, part no. 1257K115 from McMaster Carr
+    1. Set Screw Shaft Collar for 1/4" Diameter (quantity 2), part no. 9414T6 from McMaster Carr 	
+    7. Torsion Spring, 90 Degree Left-Hand Wound, 0.848" OD, 0.105" Wire Diameter,	, part no. 9271K589 from McMaster Carr
+1. Joint B, same as Joint A, except no spring.
 1. Joint C:
     1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
     2. Servo Hub, ServoCity
@@ -91,10 +97,14 @@ Here is the bill of materials:
 
 ### MAKE3_Assy - Electronics
 
+Here is the bill of material for the electronics (minus the servos and potentiometers, which are listed with the mechanical assemblies):
+
+1. The microprocessor is an Arduino Leonardo (Note: an Arduino Uno does not work correctly with the Adafruit Servo Shield)
+1. Adafruit Servo Shield
+1. Wires from controller to Arduino/Shield. The positive and ground wires can be common for all potentiometers). I have sacrificed CAT-5 Ethernet cable, which have four twisted pairs, or eight wires, so one can wire up to six potentiometers/switches along with the positive and ground wires. All 8 wires have unique colors, which makes it easy to keep track of the wires.
 1. Battery - 7.4V Lipo 
-2. Arduino Leonardo
-3. Adafruit Servo board
-4. Switch 
+1. Switch 
+1. Misc. connectors for the battery and switch
 
 ## Claw_Assembly.scad
 
@@ -119,6 +129,8 @@ This is the claw that attaches to the end of the robot arm. It is designed to be
 ## Controllers.scad   (Input Arm Assembly controller shown)
 
 ![Controller_Arm](/Images/InputArm_FlyAround.gif)
+
+This is the *baby* robot arm used to control the big arm. The main design objective was to make the parts 3D printable without supports (for accuracy) so that when assembled the joints have just enough friction so that they move easily but the baby arm will also hold position when it is released.  This design accomplished that!
 
 ### Input Arm Controller Parts - 3D printed 
 

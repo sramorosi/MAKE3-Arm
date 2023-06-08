@@ -4,9 +4,49 @@ This folder contains the Arduino Robot Arm control software for the MAKE3-Arm.
 
 It is written in the C programming language (it does not use C++ objects).  Variables have been grouped into structures using `struct`, to help organize the code.
 
-An understanding of how microcontrollers work is required. Specifically there is an initialization function `setup()` and a repeating `loop()` function. For good robot arm performance it is important to let `loop()` loop as fast as possible. Slow loops can make the arm response jerky and potentially introduce unsteady dynamics. For reference, the MAKE3 runs about 15 milliseconds/loop while in remote control, and about 9 milliseconds/loop while in programmed mode.
+An understanding of how microcontrollers work is required. Specifically there is an initialization function `setup()` and a repeating `loop()` function. For good robot arm performance it is important to let `loop()` loop as fast as possible. Slow loops can make the arm response jerky and potentially introduce unsteady dynamics. For reference, the MAKE3 runs about 14 milliseconds/loop while in remote control, and about 9 milliseconds/loop while in programmed mode.
 
 The code is written to control the main arm using the control Input Arm and the Selector. See folder [OpenSCAD-code](/OpenSCAD-code) for the design of these two control devices.
+
+## Calibration of your MAKE3 Arm 
+
+Once a new MAKE3 Robot Arm is completely built, the **first step** is to determine constants for Potentiometers and Servos. These are set in the `setup()` function.
+I recommend using a servo tester to get the initial range of motion correct before hooking the servos up the the Arduino/Shield. The calibration involves mapping physical potentiometer angles to millivolt readings and servo angles to microsecond (PWM pulse width) readings.
+
+```c++
+void setup() {  // setup code here, to run once:
+  // TUNE POTENTIOMETER LOW AND HIGH VALUES
+  // FORMAT: initPot(pin,lowmv,lowang,highmv,highang)
+  make3.jA.pot = initPot(1 ,905,  0/RADIAN, 112, 180/RADIAN); 
+  make3.jB.pot = initPot(5 ,500,-90/RADIAN, 908,  0/RADIAN); 
+  make3.jT.pot = initPot(0 ,894, 90/RADIAN, 127, -90.0/RADIAN); 
+  jS.pot = initPot(2 , 0, 0/RADIAN, 1023, 280/RADIAN); 
+
+  // TUNE SERVO LOW AND HIGH VALUES
+  // FORMAT: initServo(pin,lowang,lowms,highang,highms)
+  make3.jA.svo = initServo(0,  7.0/RADIAN, 505, 90.0/RADIAN, 1551);
+  make3.jB.svo = initServo(1, 0.0/RADIAN, 500,-175.0/RADIAN, 2320);
+  make3.jC.svo = initServo(2, -90.0/RADIAN, 927, 0.0/RADIAN, 1410);
+  make3.jD.svo = initServo(3,  -90.0/RADIAN,  811, 90.0/RADIAN, 2054); 
+  make3.jCLAW.svo = initServo(4, -45.0/RADIAN,  500, 45.0/RADIAN, 2000); 
+  make3.jT.svo = initServo(5,  70.0/RADIAN,  2347, -70.0/RADIAN, 465); 
+
+```
+
+At the end of the main loop there are some telemetry functions (that write values to Serial Output) to help with the callibration:
+
+```c++
+  //  Serial Output for Initial Calibration.  One line for each servo.  Turn on one at a time:
+  //logData(make3.jA,'A');  // Use logData for Initial Calibration of Potentiometer and Servo A
+  //logData(make3.jB,'B');  // Use logData for Initial Calibration of Potentiometer and Servo B
+  //logData(make3.jC,'C');  // Use logData for Initial Calibration of Servo C
+  //logData(make3.jD,'D');  // Use logData for Initial Calibration of Servo D
+  //logData(make3.jT,'T');  // Use logData for Initial Calibration of Potentiometer and Servo T
+
+  // Serial Output  for debugging:
+  //logPoint(make3);  // Use for debugging paths
+  //logGeneral();  // Use for general debugging
+```
 
 ## Main Loop
 
@@ -60,7 +100,7 @@ void loop() {  //########### MAIN LOOP ############
 
 There are two basic states:
 1. The AUTO or programmed mode uses function `readCommands` and there is more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
-2. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code above below the line `case S_TELEOP_3:`  This is the flow:
+2. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code below the line `case S_TELEOP_3:`  This is the flow:
     1. The potentiometers are read from the input control arm using `analogRead` and mapped to angles using `pot_map`
     2. The point at the end of the arm is calculated from the potentiometer angles using `anglesToG`. This becomes the new target point
     3. The `updateArmPtC` function moves the current point toward the target point in a controlled move.  See [TELE code](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#tele-remote-control-code-outline)
@@ -235,14 +275,6 @@ void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean l
 K_ORBIT works in a similar method to K_LINE_G, except that the path on the xy plane is an arc, and the aiming of the claw is toward the arc center.
 
 
-## Electronics used in the MAKE3
-
-Here is the bill of material for the electronics (minus the servos and potentiometers listed above):
-
-1. The microprocessor is an Arduino Leonardo (Note: an Arduino Uno does not work correctly with the Adafruit Servo Shield)
-1. Adafruit Servo Shield
-1. Wires from controller to Arduino/Shield. The positive and ground wires can be common for all potentiometers). I have sacrificed CAT-5 Ethernet cable, which have four twisted pairs, or eight wires, so one can wire up to six potentiometers/switches along with the positive and ground wires 
-1. Misc. connectors for the battery and switch
 
 
 
