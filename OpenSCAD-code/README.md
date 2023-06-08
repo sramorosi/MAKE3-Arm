@@ -17,7 +17,7 @@ Note: OpenSCAD is a Functional Programming Language, and as such one cannot rede
 ![MAKE3 Nomenclature](/Images/MAKE3_Nomenclature.jpg)
 Labeled photo of the MAKE3 arm.
 
-The next sections provide the **Bill of Materials** for the MAKE3 arm and control devices, organized by the OpenSCAD files. The files are divided into major assemblies, to keep the files from getting large. There are three major assembly files ([Claw Assembly](#Claw_Assembly.scad), [Controllers](#Controllers.scad), and the [MAKE3 Assembly](#MAKE3_Assy.scad)) and a number of other `include` files that are used with these three main files (`use` is another type of included file in OpenSCAD).   Within the files, there are `modules` or `functions` that break up the code into sub-assemblies, details and other functions.
+The next sections provide the **Bill of Materials** for the MAKE3 arm and control devices, organized by the OpenSCAD files. The files are divided into major assemblies, to keep the files from getting large. There are three major assembly files ([Claw Assembly](#claw_assemblyscad), [Controllers](#controllersscad), and the [MAKE3 Assembly](#make3_assyscad)) and a number of other `include` files that are used with these three main files (`use` is another type of included file in OpenSCAD).   Within the files, there are `modules` or `functions` that break up the code into sub-assemblies, details and other functions.
 
 ## MAKE3_Assy.scad
 
