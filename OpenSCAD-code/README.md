@@ -2,9 +2,9 @@
 
 This folder contains the OpenSCAD documents that define the MAKE3-Arm and Controllers.
 
-Familiarity with OpenSCAD is required to make the files for printing and to interogate the design.
+Familiarity with OpenSCAD is required, to make the files for printing and to interogate the design.
  
-The OpenSCAD design files are text files that contain the code for making the designs.  Use these design files to create the .stl files (STL or STereoLithography or Standard Triangle Language) for 3D printing. For more information on how to make .stl files see [making STL models from OpenSCAD](#making-stl-models-from-openscad)
+The OpenSCAD design files are text files that contain the code for the designs.  Use these files to export the .stl files (STL or STereoLithography or Standard Triangle Language) for 3D printing. For more information on how to make .stl files see [making STL models from OpenSCAD](#making-stl-models-from-openscad)
 
 The objective with MAKE3 was to make the design variable-driven (the variables are mostly at the top of each file and should work with the OpenSCAD **Customizer**).
 
