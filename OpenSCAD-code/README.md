@@ -22,6 +22,7 @@ The next sections provide the **Bill of Materials** for the MAKE3 arm and contro
 ## MAKE3_Assy.scad
 
 ![MAKE3-Arm-gif](/Images/MAKE3_Arm_FlyAround.gif)
+
 GIF animation of the MAKE3 Robot Arm created in OpenSCAD. 
 [See how to make gifs here](https://github.com/sramorosi/MAKE3-Arm/tree/main/OpenSCAD-code#making-animation-gif-or-video-files-from-openscad)
 
