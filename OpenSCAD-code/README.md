@@ -46,12 +46,12 @@ ECHO: "B SERVO", " MARGIN OF SAFETY ", MS = 1.10963, max_load = 259228, pos = 4
 ECHO: "A SERVO - NO SPRING", " MARGIN OF SAFETY ", MS = 0.138404, max_load = 549014, pos = 4
 ECHO: A_spr_torque_min = -170310, A_spr_torque_max = 218970
 ECHO: "A SERVO - SPRING", " MARGIN OF SAFETY ", MS = 0.797602, max_load = 347685, pos = 9
-ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 2.50475, max_load = -178329, pos = 20```
+ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 2.50475, max_load = -178329, pos = 20
+```
 
 The largest moments are attempted to be found by performing the calculations on a range of positions, using `function sweep1`. The largest moment values sometime show up at unusual positions. A **static** calculation is performed at each position.  No **dynamic** calculations are performed, and because of this one should have healthy static margins.
 
 This design has a **torsion spring** located at joint A, which helps reduce the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (MS = 0.13...) a small or negative MS is BAD.  With a spring MS = 0.79...  I have found with a MS less than 0.5 that the servos tend to heat up quickly, damaging the servos (I have killed many servos along the way).
-
 
 Here is the **Bill of Materials**:
 
@@ -162,8 +162,6 @@ This is the *baby* robot arm used to control the big arm. The main design object
 ### Selector Parts - Purchased Parts
 
 1. Potentiometer (quantity 1)
-
-
 
 ### Making STL models from OpenSCAD
 
