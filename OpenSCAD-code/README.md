@@ -66,7 +66,7 @@ Here is the **Bill of Materials**:
 
 ### MAKE3_Assy - Purchased Hardware or other
 
-1. Claw Assembly - See Claw_Assembly.scad
+1. Claw Assembly - See [Claw_Assembly.scad](#claw_assemblyscad)
 1. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061. This tube is stiff torsionally and the wires can run inside of it.
 1. Tube for BC arm: 1" square x 0.065" thick Aluminum tube, 6061. 
 1. Joint A:
