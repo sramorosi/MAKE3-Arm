@@ -26,7 +26,7 @@ The next sections provide the **Bill of Materials** for the MAKE3 arm and contro
 GIF animation of the MAKE3 Robot Arm created in OpenSCAD. 
 [See how to make gifs here](https://github.com/sramorosi/MAKE3-Arm/tree/main/OpenSCAD-code#making-animation-gif-or-video-files-from-openscad)
 
-The Engineering calculations performed in the MAKE3_Assy file are to find the largest torque on the A, B and C servos.  From these torques a Margin of Safety (MS)calculation is performed to find out if the selected design (servo, gearing, link lengths, etc)will work (that is have a positive MS).  These torques are echoed to the console window, as shown below, and will change as the variables are changed:
+Engineering calculations are performed to find the largest torque on the A, B and C servos.  From these torques a Margin of Safety (MS) calculation is performed to find out if the selected servo will work (that is have a positive MS).  These torques are echoed to the console window, as shown below, and will change as the variables are changed:
 
 ```
 ECHO: LEN_AB = 350, LEN_BC = 380, LEN_CD = 160, PAYLOAD_MASS = 200
@@ -48,7 +48,7 @@ ECHO: "A SERVO - SPRING", " MARGIN OF SAFETY ", MS = 0.797602, max_load = 347685
 ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 2.50475, max_load = -178329, pos = 20
 ```
 
-The largest moments are attempted to be found by performing the calculations on a range of positions, using `function sweep1`. The largest moment values sometime show up at unusual positions. A **static** calculation is performed at each position.  No **dynamic** calculations are performed, and because of this one should have healthy static margins.
+The largest moments are *attempted* to be found by performing the calculations on a range of positions, using `function sweep1`. The largest moment values sometime show up at unusual positions. A **static** calculation is performed at each position.  No **dynamic** calculations are performed, and because of this one should have "large" static margins (MS values greater than 0.5 are recommended).
 
 This design has a **torsion spring** located at joint A, which helps reduce the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (MS = 0.13...) a small or negative MS is BAD.  With a spring MS = 0.79...  I have found with a MS less than 0.5 that the servos tend to heat up quickly, damaging the servos (I have killed many servos along the way).
 
