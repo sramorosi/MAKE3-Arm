@@ -166,7 +166,7 @@ This is the *baby* robot arm used to control the big arm. The main design object
 ### Making STL models from OpenSCAD
 
 To make STL models for 3D printing follow these steps for each part that you want to print. The OpenSCAD **Customizer** is handy for changing variables prior to exporting.
-1. toggle off the Assembly.  Do not print Assemblies.
+1. Toggle off the assembly.  Do not print assemblies.
 ```OpenSCAD
 DISPLAY_ASSY = true;  // set this to false when exporting STL files
 ```
@@ -175,13 +175,13 @@ DISPLAY_ASSY = true;  // set this to false when exporting STL files
 // use 140 for printing, 40 for display
 FACETS = 100; // [40,140]
 ```
-3. Toggle on and off the parts that you want to print by finding the line in the code that draws the part. Remove * (disable) suffix on the line.  Note:  These lines have // EXPORT AS STL at the end of the line.
+3. Toggle on and off the parts that you want to print by finding the line in the code that draws the part. Remove * (disable) prefix on the line.  Note:  These lines have // EXPORT AS STL at the end of the line.
 ```
 *servo_mount(); // EXPORT AS STL, quantity 2.  remove the * for export
 ```
-4. Render the part **(F6)** Note: Rendering can take much longer than Preview (F5), as in minutes.  Look for a progress bar on the lower right.
+4. Render the part **(F6)** Note: Rendering can take much longer than Preview (F5), taking minutes rather than seconds.  Look for a progress bar on the lower right.
 5. Export the rendered part as an STL file **(F7)**
-6. Load the STL file into your favorite slicer.  Note: Occasionally you may need to perform some STL cleanup, using your favorite tool.  I use the 3D Builder tool on Windows, when I detect something not working right in the slicer.
+6. Load the STL file into your favorite slicer.  Note: Occasionally you may need to perform some STL cleanup, when you detect something not working right in the slicer. I use the 3D Builder tool on Windows for STL repairs.
 
 ### Making Animation (.gif or video) files from OpenSCAD
 
