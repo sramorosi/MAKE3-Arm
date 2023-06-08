@@ -50,7 +50,7 @@ ECHO: "A SERVO - SPRING - NO PAYLOAD", " MARGIN OF SAFETY ", MS = 2.50475, max_l
 
 The largest moments are *attempted* to be found by performing the calculations on a range of positions, using `function sweep1`. The largest moment values sometime show up at unusual positions. A **static** calculation is performed at each position.  No **dynamic** calculations are performed, and because of this one should have "large" static margins (MS values greater than 0.5 are recommended).
 
-This design has a **torsion spring** located at joint A, which helps reduce the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (MS = 0.13...) a small or negative MS is BAD.  With a spring MS = 0.79...  I have found with a MS less than 0.5 that the servos tend to heat up quickly, damaging the servos (I have killed many servos along the way).
+This design has a **torsion spring** located at joint A, which reduces the torque on the A servo.  Above, the fourth line from the bottom shows the margin without a spring (...NO SPRING ... MS = 0.13...) a small or negative MS is BAD.  With a spring MS = 0.79...  I have found that, with a MS less than 0.5, the servos tend to heat up quickly, damaging the servos (I have killed many servos along the way).
 
 Here is the **Bill of Materials**:
 
