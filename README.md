@@ -14,7 +14,7 @@ GIF animation of the MAKE3 Robot Arm created in OpenSCAD.
 ![MAKE3 Nomenclature](/Images/MAKE3_Nomenclature.jpg)
 Labeled photo of the MAKE3 arm.
 
-Video of the MAKE3 robot arm [here](https://www.wevideo.com/view/3040378114)
+Video of the MAKE3 robot arm can be found [here](https://youtu.be/0xM0Xhr4jO0)
 
 ## MAKE3 Specification
 
