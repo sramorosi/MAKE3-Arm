@@ -6,7 +6,29 @@ It is written in the C programming language (it does not use C++ objects).  Vari
 
 An understanding of how microcontrollers work is required. Specifically there is an initialization function `setup()` and a repeating `loop()` function. For good robot arm performance it is important to let `loop()` loop as fast as possible. Slow loops can make the arm response jerky and potentially introduce unsteady dynamics. For reference, the MAKE3 runs about 14 milliseconds/loop while in remote control, and about 9 milliseconds/loop while in programmed mode.
 
-The code is written to control the main arm using the control Input Arm and the Selector. See folder [OpenSCAD-code](/OpenSCAD-code) for the design of these two control devices.
+The MAKE3 Robot Arm is driven by servos. Servos take **position** command as their input. With the MAKE3, the servo commands are being given (written) every loop!
+
+## Top Level Operation of MAKE3 Arm
+
+There are two basic ways to control the arm. The first is by **remote control** (also called TELEOPERATED), which is the easiest to get working. The second is 
+**programmed mode** (also called AUTONOMOUS), which takes more coding and is described further down.
+
+The code is written to control the main arm using the control **Input Arm** and the **Selector**. See folder [OpenSCAD-code](/OpenSCAD-code) for the design of these two control devices.   To avoid using the Selector (recommended for first setup), **add a jumper between analog I/O port 8 and Ground**. This tells the code to stay in TELEOPERATED mode.
+
+The **Input Arm** (or baby arm) is scaled down version of the MAKE3 arm, but it only has joints A, B and T (turntable); it only has potentiometers for these three joints.  The Input Arm also has a **button to control the Claw**, which toggles the claw open and closed.
+
+### Wrist Servos, C and D
+
+The wrist servos, C and D, are always controlled by code (not by an input potentiometer).  In general, the code makes the C servo always point straight down (-90 degrees in global C angle sence). This is done by the function `getCang` shown below.  D is likewise made to **aim** the Claw in a global angle sence. 
+
+```c++
+float getCang(float a_angle, float b_angle, float fixed_c_angle) { // returns joint angle C, using A and B
+  // Assumes that you want an absolute (fixed) C angle
+  return -a_angle - b_angle + fixed_c_angle;
+}
+```
+
+Having C and D controlled by code makes the arm much easier to operate.
 
 ## Calibration of your MAKE3 Arm 
 
@@ -48,9 +70,11 @@ At the end of the main loop there are some telemetry functions (that write value
   //logGeneral();  // Use for general debugging
 ```
 
-## Main Loop
+## The Main Loop
 
 Here is a **snapshot** of the main loop. The global variable `make3` is a `struct` that organizes the arm data. In the middle of the code the statement `switch (make3.state)` uses the **state** to execute different lines. The state is controlled by the selector. [See section on selector](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#highest-level-program-control-using-the-selector) 
+
+The TELE state is more complex than one might expect. The TELE method is shown below, in the snapshot of the `loop()`. It is further explained below.
 
 ```c++
 void loop() {  //########### MAIN LOOP ############
@@ -99,34 +123,13 @@ void loop() {  //########### MAIN LOOP ############
 ```
 
 There are two basic states:
-1. The AUTO or programmed mode uses function `readCommands` and there is more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
-2. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code below the line `case S_TELEOP_3:`  This is the flow:
+1. The TELE or remote control mode has a number of steps used to make the movements smooth. See the code below the line `case S_TELEOP_3:`  This is the flow:
     1. The potentiometers are read from the input control arm using `analogRead` and mapped to angles using `pot_map`
     2. The point at the end of the arm is calculated from the potentiometer angles using `anglesToG`. This becomes the new target point
     3. The `updateArmPtC` function moves the current point toward the target point in a controlled move.  See [TELE code](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#tele-remote-control-code-outline)
     4. The joint angles are then solved for the desired current point using the Inverse Kinematics function `inverseArmKin`. 
     5. Finally, the angles are sent to servo to make the arm move using `pwm.writeMicroseconds`.  This is common for both AUTO and TELE (is outside of the switch scope)
-
-
-## Highest level program control, using the Selector
-
-The Selector lets you pick one of multiple different programs for the arm
-
-![Controller-Selector](/Images/Controller-Selector.gif)
-
-There are two main modes by which one can control the Arm:
-
-1. Remote Control (teleoperated or TELE) using the Control Arm
-2. Programmably (autonomously or AUTO) using command sequences within the code
-
-The different program modes (TELE or AUTO) are chosen using the Selector and are called **states**, which are defined by constants in the code. The following code block shows a few of the state constants.
-
-```c++
-// STATES (or programs)  Controlled by the selector potentiometer.
-#define S_TELEOP_1 1   
-#define S_AUTO_2   2 
-#define S_TELEOP_3 3 
-```
+1. The AUTO or programmed mode uses function `readCommands` and there is more on that [here](https://github.com/sramorosi/MAKE3-Arm/tree/main/MAKE3#auto-programmable-code-outline)
 
 ## TELE (remote control) code outline
 
@@ -158,6 +161,25 @@ void updateArmPtC(arm & the_arm) { // Moves current point C toward target_pt at 
 }
 ```
 
+## Highest level program control, using the Selector
+
+The Selector lets you pick one of multiple different programs for the arm
+
+![Controller-Selector](/Images/Controller-Selector.gif)
+
+There are two main modes by which one can control the Arm:
+
+1. Remote Control (teleoperated or TELE) using the Control Arm
+2. Programmably (autonomously or AUTO) using command sequences within the code
+
+The different program modes (TELE or AUTO) are chosen using the Selector and are called **states**, which are defined by constants in the code. The following code block shows a few of the state constants.
+
+```c++
+// STATES (or programs)  Controlled by the selector potentiometer.
+#define S_TELEOP_1 1   
+#define S_AUTO_2   2 
+#define S_TELEOP_3 3 
+```
 ## AUTO (programmable) code outline
 
 The autonomous **Programming Commands** are defined by constants. These commands are shown below:
@@ -207,7 +229,7 @@ void readCommands(arm & the_arm, sequence & the_seq) {  // read through commands
 }
 ```
 
-## Example Program
+## Example AUTO Program
 
 Programs are initialized when the loop sees a new state that is an AUTO state. The initialization is done in the function `stateLoop(arm & the_arm)` Below is a **snapshot** from stateloop of a program to move to a point and get ready pick up something.  This is the method by which one programs the arm.
 
@@ -224,9 +246,9 @@ Programs are initialized when the loop sees a new state that is an AUTO state. T
         break;      
 ```
 
-### How K_LINE_G works
+### How K_LINE_G works in AUTO
 
-The K_LINE_G command moves the arm grabber point **G** from one point to another point along a linear path, usually.  There is an option to **lift** the arm between the points. The function `path_line` builds an array of robot arm angles, on the fly, that will move the arm smoothly from start to end point. Here is a snapshot of the code:
+The K_LINE_G command moves the arm grabber point **G** from one point to another point along a linear path, usually.  There is an option to **lift** the arm between the points. The function `path_line` **builds an array of robot arm angles**, on the fly, that will move the arm smoothly from start to end point. Here is a snapshot of the code:
 
 ```c++
 void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean liftMiddle,int lift) {  
@@ -274,7 +296,50 @@ void path_line(pathAngles & the_pathA,point start,point end, point aim,boolean l
 
 K_ORBIT works in a similar method to K_LINE_G, except that the path on the xy plane is an arc, and the aiming of the claw is toward the arc center.
 
+## Inverse Kinematics Function, used in TELE and AUTO
 
+The code for the Inverse Kinematincs function is shown here:
 
+```c++
+void inverseArmKin(point c, float l_ab, float l_bc,point & angles) {
+  // Given robot arm Ground-Turtable-AB-BC, where Turntable and A are [0,0,0]
+  // The location of joint C (point c) and the lengths AB (l_ab) and BC (l_bc) are specified
+  // The joints A,B are on a turntable with rotation T parallel to Z through A
+  // With T_angle = 0, then joints A & B are parallel to the Y axis
+  // Calculate the angles given pt C ***Inverse Kinematics***
+  // returns an array (TYPE point) with [A_angle,B_angle,T_angle] in radians
+  //
+  // Inverse Kinematics is not much more than a few tri formulas
+  // A Reference to the math is here: https://appliedgo.net/roboticarm/
+  //
+  float c_len, sub_angle1, sub_angle2;
+  point c_new;
+  static float tAngMemory = 0.0;  //  NEEDS TO BE STATIC
 
+  // Check for near negative x values to prevent bad math, arm clashes
+  if (c.x < 2.0) {  // 2 mm
+    c.x = 2.0;
+    angles.z = tAngMemory/1.3;  // ease the transition toward zero turntable angle
+  } else {
+    angles.z = atan2(c.y,c.x);   // turntable angle, compute with pos x
+  }
+  tAngMemory = angles.z;
 
+  // CONVERT THE 3D POINT PROBLEM TO A 2D PROBLEM, FOR SOLVING THE INVESE KINEMATICS
+  c_new = rot_pt_z(c,-angles.z); // rotate the point c onto the XZ plane using turntable angle
+  c_len = sqrt(pow((c_new.x),2)+pow(c_new.z,2));   // XZ plane, reuse variable c_len
+
+  // THIS IS THE 2D INVESE KINEMATIC MATH
+  if (c_len < l_ab+l_bc) {
+    // case where robot arm can reach
+    sub_angle1 = atan2(c_new.z,c_new.x);
+    sub_angle2 = acos((pow(c_len,2)+pow(l_ab,2)-pow(l_bc,2))/(2*c_len*l_ab));
+    angles.x = sub_angle1 + sub_angle2;
+    angles.y = acos((pow(l_bc,2)+pow(l_ab,2)-pow(c_len,2))/(2*l_bc*l_ab))-180.0/RADIAN;
+  } else {
+    // case where robot arm can not reach point... 
+    angles.x = atan2(c_new.z,c_new.x); // a angle point in direction to go
+    angles.y = 0.0; // b is straight
+  } 
+}
+```

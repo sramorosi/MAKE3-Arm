@@ -1058,7 +1058,7 @@ void loopTime(arm & the_arm) { // Keep track of Loop time.  Used for regulating 
   }
 }
 
-void loopUpdateHand (arm & the_arm) { // Call this Function AFTER A B T JOINTS HAVE BEEN UPDATED
+void loopUpdateWrist (arm & the_arm) { // Call this Function AFTER A B T JOINTS HAVE BEEN UPDATED
   // HAND MODES.  Solve for joints C and D
   static point ctemp = {0,-S_CG_Y,0};  // G CENTER (CAMERA) RELATIVE TO C, USED IN AIM
   point c1;    // USED IN AIM
@@ -1170,7 +1170,7 @@ void loop() {  //########### MAIN LOOP ############
       make3.jB.current_angle = angles.y;  // local B
       make3.jT.current_angle = angles.z;  //  T
       
-      loopUpdateHand(make3);  // HAND JOINT UPDATE 
+      loopUpdateWrist(make3);  // HAND JOINT UPDATE 
       updateJointBySpeed(make3.jC, make3.dt);  
       updateJointBySpeed(make3.jD, make3.dt);  
 

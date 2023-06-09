@@ -803,18 +803,18 @@ module Bearing_Flanged (t=2,flange_t=1,od=3,id=1,flange_od=4) {
 
 *translate([-10,0,0]) Bearing_Flanged (t=M6_bearing_t,flange_t=M6_bearing_flange_t,od=M6_bearing_od,id=hole_M6,flange_od=M6_bearing_flange_od);
 
-module M5_RHS (length=10) {
-    // Make a M5 Round Head Screw of length length
-    // draw in inches (always scaled)
-    $fs=0.1; // minimum size of fragment (default is 2)
+module Screw(length=10,dia=3) {
+    // Draw Round Head Screw of length and diameter
+    // Ratio of Head Diameter and Height determined by looking at Rounded Head Thread-Forming Screws for Plastic
     color ("DarkSlateGrey") 
     union () {
-        cylinder(h=length,d=4.8,center=false);
-        //cylinder(h=9,d=5,center=true);
-        rotate_extrude(convexity=10) 
-            polygon( points=[[0,0],[4.5,0],[4.5,-2],[3,-2.9],[0,-2.9],[0,0]] );
+        cylinder(h=length,d=dia,center=false,$fn=16);
+        rotate_extrude(convexity=10,$fn=16) 
+            polygon( points=[[0,0],[dia*.95,0],[dia*.95,-dia*.5],[dia/1.5,-dia*.75],[0,-dia*.75],[0,0]] );
     }
 }
+Screw();
+
 module hex (size=20,l=10) {
     // Make a hex extrution with distance across flats = size
     // centered on xy=0 and up l from z=0
@@ -893,58 +893,60 @@ module P090S_pot (negative=false) {
 *translate([20,0,0]) P090S_pot(negative=false);
 
 module P090L_pot (negative=false) {
-    // units are in metric
     // The P090L (Style L) has the three pins off of the side
-    // Solder the wires to the pins (need solid connection)
-    // Cut off connectors to reduce installation volume
+    // Digi-key part no. P090S-04F20BR10K or P090S-14T20BR10K
+    // https://www.digikey.com/en/products/detail/tt-electronics-bi/P090S-04F20BR10K/2408853 
+    // https://www.mouser.com/ProductDetail/BI-Technologies-TT-Electronics/P090S-14T20BR10K
+    // Solder the wires to the pins (need solid connection). Pins can be easily bent.
+    // Cut off connectors to reduce installation volume with small diagonal cutters.
     // negative false = model a potentiometer for display
     // negative true = model to be used with a difference() in another model
+    L_pot_shaft = 13.1;  // P090 shaft length above the body (mm)
+    zbody = 5.5;  // all units are mm
     
-    ss = negative ? 1.0: 0.97;  // if negative false then scale down
+    ss = negative ? 1.0: 0.97;  // if negative == false then scale down
     // constants
-    zbody = 5.1;
-    zb = zbody+1;
-    zpin = -4;
+    zbDif = zbody+1;  // make body bigger for difference()
 
     scale([ss,ss,ss]){ // scale down the model for display
         color("green") if (!negative) { // potentiometer for display
             translate([0,0,-zbody/2]) cube([10,12,zbody],center=true);
-            // two bumps on backside
-            translate([0,-8.5/2,-zbody]) cylinder(h=2,d=1.2,center=true,$fn=20);
-            translate([0,8.5/2,-zbody]) cylinder(h=2,d=1.2,center=true,$fn=20);
+            // two cylinders on backside, drawn larger than real
+            translate([0,-8.5/2,-zbody]) cylinder(h=4,d=3,center=true,$fn=FACETS);
+            translate([0,8.5/2,-zbody]) cylinder(h=4,d=3,center=true,$fn=FACETS);
 
         } else {         // potentiometer for difference()
-            translate([0,0,-zb/2]) cube([10,12.5,zb],center=true);
-            translate([0,-12.5,-zb/2]) cube([10,20,zb],center=true);
+            translate([0,0,-zbDif/2]) cube([10,12.5,zbDif],center=true);
+            translate([0,-12.5,-zbDif/2]) cube([10,20,zbDif],center=true);
         }
         
-        cylinder(h=2,d=7.2,center=true,$fn=48); // ring around the shaft
+        cylinder(h=2,d=7.2,center=true,$fn=FACETS); // ring around the shaft
         
-        // two bumps around the shaft
-        translate([2.7,-3.8,0]) cylinder(h=2,d=2.5,center=true,$fn=24);
-        translate([-2.7,3.8,0]) cylinder(h=2,d=2.5,center=true,$fn=24);
+        // two cylinders around the shaft
+        translate([2.7,-3.8,0]) cylinder(h=2,d=3,center=true,$fn=FACETS);
+        translate([-2.7,3.8,0]) cylinder(h=2,d=3,center=true,$fn=FACETS);
         
     
         // shaft F-Type
         color("darkslategrey") 
             difference () {
                 translate([0,0,L_pot_shaft/2]) 
-                    cylinder(h=L_pot_shaft,d=6.2,center=true,$fn=48);
+                    cylinder(h=L_pot_shaft,d=6.2,center=true,$fn=FACETS);
                 // 1.55 was 1.45, increased to make assembly easier
                 translate ([-5,-L_pot_shaft-1.55,5]) cube(L_pot_shaft,center=false); // key
         }
         // pins (3)
-        translate([0,7,zpin]) elect_pin();
-        translate([-2.5,7,zpin]) elect_pin();
-        translate([2.5,7,zpin]) elect_pin();
+        zpin = -4;
+        translate([0,-11,zpin]) elect_pin();
+        translate([-3,-11,zpin]) elect_pin();
+        translate([3,-11,zpin]) elect_pin();
     }
      
-    module elect_pin() {
-        // 1 mm diamater electric pin
-        rotate([90,0,0]) translate([0,0,lenPin/2]) cylinder(h=lenPin,r=.5,$fn=8);
+    module elect_pin() { // 1 mm diamater electric pin
+        cube([1.5,10,0.5],center=true);
     }
 }
-*P090L_pot(negative=true);
+*P090L_pot(negative=false);
 *translate([20,0,0]) P090L_pot(negative=false);
 
 module RV112FF_pot (L=19,negative=false) {

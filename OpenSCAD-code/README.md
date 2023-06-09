@@ -67,42 +67,40 @@ Here is the **Bill of Materials**:
 ### MAKE3_Assy - Purchased Hardware or other
 
 1. Claw Assembly - See [Claw_Assembly.scad](#claw_assemblyscad)
-1. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061. This tube is stiff torsionally and the wires can run inside of it.
-1. Tube for BC arm: 1" square x 0.065" thick Aluminum tube, 6061. 
+1. Tube for AB arm: 1" square x 0.065" thick Aluminum tube, 6061 or 6063. This tube is stiff torsionally and the wires can run inside of it. From Online Metals
+1. Tube for BC arm: same material as AB arm 
 1. Joint A:
-    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
+    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360, from Amazon
     2. Servo Gear, 32P, 32 Tooth, 25T 3F Spline Servo Mount Gear, from ServoCity
-    4. Screws to attach servo to block, Phillips Rounded Head Thread-Forming Screws
-for Plastic, 18-8 Stainless Steel, Number 4 Size, 1/2" Long
+    4. Screws to attach servo to block, Phillips Rounded Head Thread-Forming Screws for Plastic, 18-8 Stainless Steel, Number 4 Size, 1/2" Long, from McMaster Carr
     5. Bearings for main shaft
     6. Axel, 1/4 inch bolt, or for better precision Rotary Shaft, 303 Stainless Steel, 1/4" Diameter, part no. 1257K115 from McMaster Carr
     1. Set Screw Shaft Collar for 1/4" Diameter (quantity 2), part no. 9414T6 from McMaster Carr 	
-    7. Torsion Spring, 90 Degree Left-Hand Wound, 0.848" OD, 0.105" Wire Diameter,	, part no. 9271K589 from McMaster Carr
-1. Joint B, same as Joint A, except no spring.
+    7. Torsion Spring, 90 Degree Left-Hand Wound, 0.848" OD, 0.105" Wire Dia, part no. 9271K589 from McMaster Carr
+1. Joint B, same as Joint A, except no spring
 1. Joint C:
-    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
-    2. Servo Hub, ServoCity
-    4. Screws to attach servo to block
+    1. Servo, 270 degree, 25 kg-cm torque, DS3225MG, from Amazon
+    2. Servo Hub (25T Spline), from ServoCity
 1. Joint D:
-    1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
-    2. Servo Block, ServoCity
+    1. Servo, 270 degree, 25 kg-cm torque, DS3225MG, from Amazon
+    2. Standard Hub Shaft Servo Block (25T Spline), from ServoCity
 1. Joint T (for turntable):
     1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
-    2. Servo Gear, 32 tooth, ServoCity
-    4. Screws to attach servo to block
-    5. Bearings for main shaft
-    6. Main Shaft, 1/2" hex bar
+    2. Servo Gear (25T Spline), 32 tooth, from ServoCity, same as above
+    4. Screws to attach servo to block, same as above
+    5. Two Flanged Hex Bore Precision Ball Bearings 1/2” Hex ID x 1-1/8” OD x 5/16” WD, for main shaft, from Amazon
+    6. Main Shaft, 1/2" aluminum hex bar, 7075, from Online Metals
 1. 2 by 4 wood for base
 
 ### MAKE3_Assy - Electronics
 
 Here is the bill of material for the electronics (minus the servos and potentiometers, which are listed with the mechanical assemblies):
 
-1. The microprocessor is an Arduino Leonardo (Note: an Arduino Uno does not work correctly with the Adafruit Servo Shield)
-1. Adafruit Servo Shield
+1. The microprocessor is an Arduino Leonardo (Note: an Arduino Uno does not work correctly with the Adafruit Servo Shield), from Amazon
+1. Adafruit Servo Shield, Shield stacking headers for Arduino (R3 Compatible), 16-Channel 12-bit PWM/Servo Shield - I2C interface
 1. Wires from controller to Arduino/Shield. The positive and ground wires can be common for all potentiometers). I have sacrificed CAT-5 Ethernet cable, which have four twisted pairs, or eight wires, so one can wire up to six potentiometers/switches along with the positive and ground wires. All 8 wires have unique colors, which makes it easy to keep track of the wires.
-1. Battery - 7.4V Lipo 
-1. Switch 
+1. Battery - 7.4V Lipo, from Amazon
+1. Rocker 2 Position ON-Off Toggle Switch AC 125V/20A, SPST 2 Pins, KCD3-101, from Amazon
 1. Misc. connectors for the battery and switch
 
 ## Claw_Assembly.scad
@@ -120,9 +118,9 @@ This is the claw that attaches to the end of the robot arm. It is designed to be
 
 ### Claw Parts - Purchased Parts
 
-1. Servo (quantity 1), At least 180 degree, at least 25 kg-cm, model ANNIMOS DS3225MG, includes horn,horn screws, horn screw bushings
-2. pins (quantity 4), Spring Steel Slotted Spring Pin, 5/64" Diameter, source McMaster Carr, part number yyyyy
-3. screws (quantity 4), attach servo to base
+1. Servo, 180 degree, 25 kg-cm, DS3225MG, includes horn, horn screws, bushings, from Amazon
+2. pins (quantity 4), Spring Steel Slotted Spring Pin, 5/64" Diameter, source McMaster Carr, part number 98296A149
+3. screws (quantity 4), attach servo to base, same as for servos on Arm
 4. foam window seal, to put on inside of guide for grip
 
 ## Controllers.scad
@@ -144,8 +142,10 @@ This is the *baby* robot arm used to control the big arm. The main design object
 
 ### Input Arm Controller Parts - Purchased Parts
 
-1. Potentiometer (quantity 3)
-2. Switch (quantity 1)
+1. Potentiometer (quantity 3), P090L-03F20BR10K, from Mouser Electronics. Snip the extentions off (not the connectors), to fit in the input arm
+1. Switch (quantity 1) 12x12x5mm Mini/Micro/Small PCB Momentary Tactile Tact Push Button Switch, from Amazon
+1. Screws to hold things together (quantity 9), Phillips Rounded Head Thread-Forming Screws for Plastic, 18-8 Stainless Steel, Number 4 Size, 3/4" Long, from McMaster Carr
+
 
 ## Controllers.scad   (Selector Assembly controller shown)
 
@@ -160,7 +160,7 @@ This is the *baby* robot arm used to control the big arm. The main design object
 
 ### Selector Parts - Purchased Parts
 
-1. Potentiometer (quantity 1)
+1. Potentiometer (quantity 1), same as used in the input arm above
 
 ### Making STL models from OpenSCAD
 

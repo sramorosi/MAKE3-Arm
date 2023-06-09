@@ -8,6 +8,8 @@
 //     then render the part (F6) (this may take some time)
 //        then  Export as STL (F7)
 use <ME_lib.scad> // contains forces, springs, MS modules and functions
+include <Part-Constants.scad>
+use <Robot_Arm_Parts_lib.scad>
 
 /* Animation Commands to create an orbital fly-around:
 $vpr = [60, 0, -30];   // view point rotation (spins the part)
@@ -74,100 +76,19 @@ POT_HOLE_DIA = 6.3; // mm
 // McMaster Carr Screw No. 90380A274  to hold lugs together (quantity about 10)
 SCREW_DIA = 3.3; // mm, For no. 4 plastic screw, length 0.75 inch
 
-//################### PART LIB FUNCTIONS AND MODULES
-module washer(d=20,t=2,d_pin=10,center=true){
-    // model washer on xy plane at 0,0,0 of diameter d, hole size of d_pin
-    // t is thickness
-    difference(){
-        cylinder(t,d=d,center=center);  // outside
-        cylinder(3*t,d=d_pin,center=true);  // subtract bore
-    };
-}
-*washer($fn=FACETS); 
-
-module rounded_cube(size=[20,30,10],r=5,center=true) {
-    // Create a rounded cube in the xy plane, flat on the Z ends
-    // Creates 4 cylinders and then uses hull
-    
-    xp=center ? size[0]/2-r : size[0]-r;
-    yp=center ? size[1]/2-r : size[1]-r;
-    xn=center ? -xp : r;
-    yn=center ? -yp : r;
-    z=center ? 0 : size[2]/2;
-
-    hull() {
-        translate([xp,yp,z]) cylinder(h=size[2],r=r,center=true);
-        translate([xp,yn,z]) cylinder(h=size[2],r=r,center=true);
-        translate([xn,yp,z]) cylinder(h=size[2],r=r,center=true);
-        translate([xn,yn,z]) cylinder(h=size[2],r=r,center=true);       
-    }  
-}
-*rounded_cube(center=false,$fn=FACETS); 
-
-L_pot_shaft = 13.1;  // P090 shaft length above the body (mm)
-zbody = 5.5;  // all units are mm
-
-module P090L_pot (negative=false) {
-// The P090L (Style L) has the three pins off of the side
-// Digi-key part no. P090S-04F20BR10K or P090S-14T20BR10K
-// https://www.digikey.com/en/products/detail/tt-electronics-bi/P090S-04F20BR10K/2408853 
-// https://www.mouser.com/ProductDetail/BI-Technologies-TT-Electronics/P090S-14T20BR10K
-// Solder the wires to the pins (need solid connection). Pins can be easily bent.
-// Cut off connectors to reduce installation volume with small diagonal cutters.
-// negative false = model a potentiometer for display
-// negative true = model to be used with a difference() in another model
-    
-    ss = negative ? 1.0: 0.97;  // if negative == false then scale down
-    // constants
-    zbDif = zbody+1;  // make body bigger for difference()
-
-    scale([ss,ss,ss]){ // scale down the model for display
-        color("green") if (!negative) { // potentiometer for display
-            translate([0,0,-zbody/2]) cube([10,12,zbody],center=true);
-            // two cylinders on backside, drawn larger than real
-            translate([0,-8.5/2,-zbody]) cylinder(h=4,d=3,center=true,$fn=FACETS);
-            translate([0,8.5/2,-zbody]) cylinder(h=4,d=3,center=true,$fn=FACETS);
-
-        } else {         // potentiometer for difference()
-            translate([0,0,-zbDif/2]) cube([10,12.5,zbDif],center=true);
-            translate([0,-12.5,-zbDif/2]) cube([10,20,zbDif],center=true);
-        }
-        
-        cylinder(h=2,d=7.2,center=true,$fn=FACETS); // ring around the shaft
-        
-        // two cylinders around the shaft
-        translate([2.7,-3.8,0]) cylinder(h=2,d=3,center=true,$fn=FACETS);
-        translate([-2.7,3.8,0]) cylinder(h=2,d=3,center=true,$fn=FACETS);
-        
-    
-        // shaft F-Type
-        color("darkslategrey") 
-            difference () {
-                translate([0,0,L_pot_shaft/2]) 
-                    cylinder(h=L_pot_shaft,d=6.2,center=true,$fn=FACETS);
-                // 1.55 was 1.45, increased to make assembly easier
-                translate ([-5,-L_pot_shaft-1.55,5]) cube(L_pot_shaft,center=false); // key
-        }
-        // pins (3)
-        zpin = -4;
-        translate([0,-11,zpin]) elect_pin();
-        translate([-3,-11,zpin]) elect_pin();
-        translate([3,-11,zpin]) elect_pin();
-    }
-     
-    module elect_pin() { // 1 mm diamater electric pin
-        cube([1.5,10,0.5],center=true);
-    }
-}
-*P090L_pot(negative=false); 
-
-//######################################################## //
+zbody = 5.5;  // Offset for potentiometer body, all units are mm
 
 module screwHoles(dia=15,shrink=false) { // pair of screw holes that hold the stack together
     cylDia = shrink ? SCREW_DIA*0.9 : SCREW_DIA;
     translate([dia/2.8,-dia/2-4,0])  cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
     translate([-dia/2.8,-dia/2-4,0]) cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
 }
+module ScrewsInHoles(lug_dia=15,screw_dia=4,screw_len=10) { // pair of screws
+    // Rounded Head Thread-Forming Screws for Plastic
+    translate([lug_dia/2.8,-lug_dia/2-4,0])  Screw(length=screw_len,dia=screw_dia);
+    translate([-lug_dia/2.8,-lug_dia/2-4,0]) Screw(length=screw_len,dia=screw_dia);
+}
+
 module roundTopLug (dia=15,hgt=20,thk=5,bore=3) {  // Full round top, width = dia
     difference() {
         translate([0,0,thk/2])
@@ -230,6 +151,12 @@ module PotCover() {
 }
 *PotCover(); // Export as STL... F7 (quantity 2)
 
+module PotCoverAssy() {
+    PotCover();
+    ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
+}
+*PotCoverAssy();
+
 module BasePotCover() {
     color("SlateBlue") 
     difference () {// Side that holds the POT
@@ -245,13 +172,21 @@ module BasePotCover() {
 }
 *BasePotCover(); // Export as STL... F7 (quantity 1)
 
+module BasePotCoverAssy() {
+    BasePotCover();
+    ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
+    
+    translate([LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
+    translate([-LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
+}
+
 module joint_visuals(cut=true) { // Use for cross section cuts of Joints
     difference() { 
         union() {
             PotLug(); 
             translate([0,0,zbody]) P090L_pot(negative=false); 
             translate([0,0,POT_LUG_THK]) NonPotLug(); // OR SELECTOR BASE
-            translate([0,0,-OUTER_LUG_THK]) PotCover();
+            translate([0,0,-OUTER_LUG_THK]) PotCoverAssy();
             rotate([0,0,90]) translate([0,0,MAIN_LUG_THK+.2]) scale([.95,.95,.95]) 
                 AB_Arm(len = lenAB);
        }
@@ -293,7 +228,7 @@ module AB_Arm(len=100) {
 module AB_Arm_Assy(len=100){
     AB_Arm(len=len); 
     translate([len,0,0])  rotate([0,0,-90]) {
-        translate([0,0,-OUTER_LUG_THK])PotCover();
+        translate([0,0,-OUTER_LUG_THK])PotCoverAssy();
         translate([0,0,POT_LUG_THK]) NonPotLug();
     }
     translate([lenAB,0,5]) rotate([0,0,-90]) P090L_pot(negative=false);
@@ -358,6 +293,7 @@ module BC_Assy() {
     translate([0,0,-OUTER_LUG_THK]) BC_Arm(len=lenBC);
     translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
     translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // switch
+    translate([lenBC,0,2]) rotate([0,180,0]) Screw(length=10,dia=4); // Screw
 }
 *BC_Assy();
 
@@ -395,7 +331,7 @@ module TA_assy() {
     translate([7,0,A_joint_Z-MAIN_LUG_THK]) rotate([90,0,-90]) {
         PotLug(); 
         translate([0,0,zbody]) P090L_pot(negative=false); 
-        translate([0,0,-OUTER_LUG_THK]) PotCover();
+        translate([0,0,-OUTER_LUG_THK]) PotCoverAssy();
     }
 }
 
@@ -405,7 +341,7 @@ module base_assy(T_angle=0) {
         PotLug(); 
         translate([0,0,zbody]) P090L_pot(negative=false); 
         translate([0,0,POT_LUG_THK]) NonPotLug(); 
-        translate([0,0,-OUTER_LUG_THK]) BasePotCover();
+        translate([0,0,-OUTER_LUG_THK]) BasePotCoverAssy();
     }
     // Moving part
     rotate([0,0,T_angle]) {
@@ -476,12 +412,21 @@ module bumpyBaseCover(thk=2,bumps=10) {
     BUMP_RAD = 1;
     BUMP_Z = thk;
     ang_inc = 180/(bumps-1);
+    echo(ang_inc=ang_inc);
     BasePotCover();
-    rotate([0,0,ang_inc]) Rotation_Pattern(number=bumps-2,radius=BUMP_Y,total_angle=180-2*ang_inc) {
+    rotate([0,0,1*ang_inc]) Rotation_Pattern(number=bumps-2,radius=BUMP_Y,total_angle=180-ang_inc) {
         translate([0,0,BUMP_Z]) cylinder(h=1,r=BUMP_RAD,$fn=FACETS);
     }
 }
 *bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1); // Export as STL... F7 (quantity 1)
+
+module BumpyBaseCoverAssy() {
+    bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1);
+    ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
+    
+    translate([LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
+    translate([-LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
+}
 
 module NonPotLugTooth() {  // Model of Potentiometer holder
     thk = 1.5;
@@ -507,7 +452,7 @@ module SelectorAssy(ang=0) {
     translate([0,0,zbody]) rotate([0,0,ang]) P090L_pot(negative=false); 
     translate([0,0,POT_LUG_THK]) NonPotLugTooth(); 
     translate([0,0,-OUTER_LUG_THK]) 
-        bumpyBaseCover(thk=OUTER_LUG_THK,bumps=NUMBER_BUMPS-1);
+        BumpyBaseCoverAssy();
     translate([0,0,MAIN_LUG_THK+LUG_Z+1.5]) 
         rotate([0,0,ang]) SelectorKnob(thk=MAIN_LUG_THK-1,bumps=NUMBER_BUMPS-1); 
 }
