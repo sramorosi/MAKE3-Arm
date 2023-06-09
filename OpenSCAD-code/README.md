@@ -73,7 +73,7 @@ Here is the **Bill of Materials**:
     1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360, from Amazon
     2. Servo Gear, 32P, 32 Tooth, 25T 3F Spline Servo Mount Gear, from ServoCity
     4. Screws to attach servo to block, Phillips Rounded Head Thread-Forming Screws for Plastic, 18-8 Stainless Steel, Number 4 Size, 1/2" Long, from McMaster Carr
-    5. Bearings for main shaft
+    5. Bearings for main shaft (quantity 2), FR4-ZZ 1/4" x 5/8" x 0.196" Flanged Radial Ball Bearing, from Amazon
     6. Axel, 1/4 inch bolt, or for better precision Rotary Shaft, 303 Stainless Steel, 1/4" Diameter, part no. 1257K115 from McMaster Carr
     1. Set Screw Shaft Collar for 1/4" Diameter (quantity 2), part no. 9414T6 from McMaster Carr 	
     7. Torsion Spring, 90 Degree Left-Hand Wound, 0.848" OD, 0.105" Wire Dia, part no. 9271K589 from McMaster Carr
@@ -88,7 +88,7 @@ Here is the **Bill of Materials**:
     1. Servo, 360 degree, 35 kg-cm torque, FeeTech FT6335M-360
     2. Servo Gear (25T Spline), 32 tooth, from ServoCity, same as above
     4. Screws to attach servo to block, same as above
-    5. Two Flanged Hex Bore Precision Ball Bearings 1/2î Hex ID x 1-1/8î OD x 5/16î WD, for main shaft, from Amazon
+    5. Two Flanged Hex Bore Precision Ball Bearings 1/2‚Äù Hex ID x 1-1/8‚Äù OD x 5/16‚Äù WD, for main shaft, from Amazon
     6. Main Shaft, 1/2" aluminum hex bar, 7075, from Online Metals
 1. 2 by 4 wood for base
 
