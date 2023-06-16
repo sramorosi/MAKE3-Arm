@@ -12,6 +12,7 @@ module csk(d=10) {  // Create a countersink (cone)
         polygon(points=[[0,0],[0,-d],[d,0]]);
 }
 *csk();
+
 module hole_pair (x = 50,y=10,d=hole_M3,h=20,csk=false) {
     // make a pair of holes that are y appart, 
     // at x location. holes are parallel to the Z axis
@@ -398,7 +399,24 @@ module washer(d=20,t=2,d_pin=10,center=true){
         cylinder(3*t,d=d_pin,center=true);
     };
 }
-*washer($fn=50);
+*washer(d_pin=0,$fn=FACETS);
+
+module RoundedWasher(d=20,t=2,d_pin=10,fillet=3) {
+    difference() {
+        hull() {
+            translate([0,0,t-fillet]) 
+                rotate_extrude(convexity = 10)
+                translate([d/2 - fillet, 0,0])
+                    circle(r = fillet);
+            translate([0,0,-t+fillet]) 
+                rotate_extrude(convexity = 10)
+                translate([d/2 - fillet, 0,0])
+                    circle(r = fillet);
+        }
+        translate([-d*2,-d*2,-d*4]) cube(d*4);
+    }
+}
+RoundedWasher(d=20,t=3,fillet=2,$fn=FACETS);
 
 module tension_spring(from=[10,0,0],to=[20,30,20],wire_dia=0.5,od=2,coils=10,ends=true){
     // Create a tenstion spring
@@ -813,7 +831,7 @@ module Screw(length=10,dia=3) {
             polygon( points=[[0,0],[dia*.95,0],[dia*.95,-dia*.5],[dia/1.5,-dia*.75],[0,-dia*.75],[0,0]] );
     }
 }
-Screw();
+*Screw();
 
 module hex (size=20,l=10) {
     // Make a hex extrution with distance across flats = size

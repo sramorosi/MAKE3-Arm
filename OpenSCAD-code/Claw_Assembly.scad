@@ -27,8 +27,8 @@ $vpd = 140;
 //
 // boolean to toggle assembly drawing
 DRAW_ASSY = true;
-// use 140 for printing, 40 for display
-FACETS = 140; // [40,140]
+// use 100 for printing, 40 for display
+FACETS = 100; // [40,100]
 // Distance Servo Axis is along X axis (mm) 
 D_SVO_CB = 50; // [30:1:100]
 // Distance Finger Base (FB) along Y axis (mm)
@@ -91,7 +91,7 @@ module curved_link(L=30,R=30,THK=5,HGT=10) {
 *curved_link(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
 
 module guide() {  // BLOCK GUIDE
-    THK = 2;  // guide thickness
+    GUAGE = 2;  // guide guage
     SWP = 14;  // sweep
     color("Navy") 
         linear_extrude(BAR_HGT/2,convexity=10) {
@@ -102,9 +102,9 @@ module guide() {  // BLOCK GUIDE
     module the_poly() {
         polygon([[0,0],[0,0.1+BAR_HGT/2],[-BAR_THK,0.1+BAR_HGT/2],
         [-BAR_THK,BAR_HGT/2.8],[-1.5*BAR_THK,BAR_HGT/2.8],
-        [-1.5*BAR_THK,BAR_HGT/1.7],[0,BAR_HGT/1.3],
-        [0,BLOCK/2+THK],[BLOCK/2,BLOCK/2+SWP],[BLOCK/2+1,BLOCK/2+SWP-THK],
-        [THK,BLOCK/2],[THK,0]]);
+        [-1.5*BAR_THK,BAR_HGT/1.7],[-0.2*BAR_THK,BAR_HGT/1.3],
+        [0,BLOCK/2+GUAGE],[BLOCK/2,BLOCK/2+SWP],[BLOCK/2+1,BLOCK/2+SWP-GUAGE],
+        [GUAGE,BLOCK/2],[GUAGE,0]]);
     };
 }
 *guide(); // Export as STL (quantity 2)

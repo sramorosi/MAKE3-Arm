@@ -89,17 +89,18 @@ module ScrewsInHoles(lug_dia=15,screw_dia=4,screw_len=10) { // pair of screws
     translate([-lug_dia/2.8,-lug_dia/2-4,0]) Screw(length=screw_len,dia=screw_dia);
 }
 
-module roundTopLug (dia=15,hgt=20,thk=5,bore=3) {  // Full round top, width = dia
+module roundTopLug (dia=15,hgt=20,thk=5,bore=3,cyl=true) {  // Full round top, width = dia
     difference() {
-        translate([0,0,thk/2])
             hull() {
-                cylinder(h=thk,d=dia,center=true);
-                translate([0,-hgt/2,0]) cube([dia,hgt,thk],center=true);
+                if(cyl) translate([0,0,thk/2]) cylinder(h=thk,d=dia,center=true);
+                else RoundedWasher(d=dia,t=thk,fillet=3);
+                translate([0,-hgt/2,thk/2]) cube([dia,hgt,thk],center=true);
             }
         cylinder(h=4*thk,d=bore,center=true);  // remove bore
     }
 }
-*roundTopLug(dia=20,hgt=5,bore=0,$fn=FACETS);  // note result if hgt < dia/2
+*roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,$fn=FACETS);  // note result if hgt < dia/2
+*roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,cyl=false,$fn=FACETS);
 
 module roundTopLugTwo (width=20,rad=2,hgt=8,thk=5,bore=3) { // Two radius round top
     cylWidth = width/2 - rad;
@@ -142,7 +143,10 @@ module NonPotLug(thk=OUTER_LUG_THK) {  // Model of Potentiometer holder
 module PotCover() {
     color("cyan") 
     difference () {// Side that holds the POT
-        roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,$fn=FACETS);
+        rotate([0,180,0]) 
+            translate([0,0,-OUTER_LUG_THK]) 
+                roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,cyl=false,$fn=FACETS);
+        // Above was cyl=true and trans and rot not required
         // remove potentiometer interface
         translate([0,0,OUTER_LUG_THK+zbody]) P090L_pot(negative=false);
         screwHoles(dia=LUG_DIA);  // remove screw holes
