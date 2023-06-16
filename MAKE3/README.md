@@ -135,7 +135,7 @@ There are two basic states:
 
 The remote control steps were outlined above in the Main Loop discussion. The function that provide smooth remote arm control is `updateArmPtC(arm & the_arm)` The function has three main features that provide the control: 
 
-1. There is a linear velocity limit `feedRate` on the movement of Joint C. This is implemented in the function updateArmPtC shown below.  The code keeps track of the Current C point, and when the user moves the control arm, a new Target C point is calculated.  The function limits how fast the arm can move from current to target. This prevent rapid movements of the arm when it is extended, which is when the most damage could occur.
+1. There is a linear velocity limit `feedRate` on the movement of the end of the arm. This is implemented in the function updateArmPtC shown below.  The code keeps track of the Current C point, and when the user moves the control arm, a new Target C point is calculated.  The function limits how fast the arm can move from current to target. This prevents rapid movement of the arm when it is extended, which is when the most damage could occur.
 
 2. The velocity is further decrease when the distance from current to target point is < RAMP_START_DIST (~50 mm), using this formula:  `newFeedRate = the_arm.feedRate * (the_arm.line_len/RAMP_START_DIST); `  This helps with the fine movements when picking and placing.
 
