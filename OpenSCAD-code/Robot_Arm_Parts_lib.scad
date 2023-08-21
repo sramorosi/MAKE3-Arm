@@ -7,6 +7,13 @@ include <Part-Constants.scad>
 // use 140 for printing, 40 for display
 FACETS = 40; // [40,140]
 
+module simpleTorus (bigR = 10, littleR = 2) {
+    rotate_extrude(convexity = 10)
+    translate([bigR, 0, 0])
+    circle(r = littleR);
+}
+simpleTorus($fn = FACETS);
+
 module csk(d=10) {  // Create a countersink (cone)
     rotate_extrude(angle=360,convexity=4) 
         polygon(points=[[0,0],[0,-d],[d,0]]);
@@ -416,7 +423,7 @@ module RoundedWasher(d=20,t=2,d_pin=10,fillet=3) {
         translate([-d*2,-d*2,-d*4]) cube(d*4);
     }
 }
-RoundedWasher(d=20,t=3,fillet=2,$fn=FACETS);
+*RoundedWasher(d=20,t=3,fillet=2,$fn=FACETS);
 
 module tension_spring(from=[10,0,0],to=[20,30,20],wire_dia=0.5,od=2,coils=10,ends=true){
     // Create a tenstion spring
