@@ -297,6 +297,14 @@ module servo_connection(len=100,t1=2,t2=38) {  // Sub module
 }
 *translate([0,0,50]) servo_connection(len=52,t1=2,t2=25);
 
+module curved_beam(rot1 = 180, radOfCurve = 20, t1 = 5, t2 = 10) {
+    // curved beam
+    rotate_extrude(angle=rot1,convexity = 20)
+        translate([radOfCurve, 0, 0])
+            square([t1,t2],center=false); // on X,Z plane
+}
+curved_beam(rot1 = 135, $fn=64);
+
 module compliant_claw2(len=160,width=120,t1=2,t2=38,r=18,pre_angle=15) {
     // U shaped claw with a pre angle
     //    t1 = general compliant thickness
@@ -317,7 +325,8 @@ module compliant_claw2(len=160,width=120,t1=2,t2=38,r=18,pre_angle=15) {
         rotate([0,0,-90])
             translate([-r-t1,width/2-r,0])
             rotate([0,0,-90]) 
-            rotate_extrude(angle=180+pre_angle,convexity = 20)
+            curved_beam(rot1=180+pre_angle,radOfCurve = r,t1=t1,t2=t2);
+            *rotate_extrude(angle=180+pre_angle,convexity = 20)
                 translate([r, 0, 0])
                     square([t1,t2],center=false); // on X,Z plane
         

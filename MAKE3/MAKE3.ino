@@ -212,7 +212,7 @@ void initArm(arm & the_arm, point pt) { // starting point for arm
   the_arm.prior_mst = millis();
   the_arm.dt = 10;  
   the_arm.timerStart = millis();
-  the_arm.feedRate = 300.0;  
+  the_arm.feedRate = 250.0;  
   the_arm.current_pt = pt;
   the_arm.target_pt = pt;
   the_arm.aim_pt = pt;
@@ -293,15 +293,15 @@ point pt_on_line(float s, float dist, point p1, point p2) { // point along line 
   return new_pt;
 }
 
-void inverseArmKin(point c, float l_ab, float l_bc,point & angles) {
+void inverseArmKin(point c, float l_ab, float l_bc, point & angles) {
   // Given robot arm Ground-Turtable-AB-BC, where Turntable and A are [0,0,0]
   // The location of joint C (point c) and the lengths AB (l_ab) and BC (l_bc) are specified
   // The joints A,B are on a turntable with rotation T parallel to Z through A
   // With T_angle = 0, then joints A & B are parallel to the Y axis
   // Calculate the angles given pt C ***Inverse Kinematics***
-  // returns an array (TYPE point) with [A_angle,B_angle,T_angle] in radians
+  // RETURNS angles (array of TYPE point) with [A_angle,B_angle,T_angle] in radians
   //
-  // Inverse Kinematics is not much more than a few tri formulas
+  // Inverse Kinematics is a few trig formulas
   // A Reference to the math is here: https://appliedgo.net/roboticarm/
   //
   float c_len, sub_angle1, sub_angle2;
@@ -317,7 +317,7 @@ void inverseArmKin(point c, float l_ab, float l_bc,point & angles) {
   }
   tAngMemory = angles.z;
 
-  // CONVERT THE 3D POINT PROBLEM TO A 2D PROBLEM, FOR SOLVING THE INVESE KINEMATICS
+  // CONVERT 3D POINT TO A 2D POINT, FOR SOLVING THE INVESE KINEMATICS
   c_new = rot_pt_z(c,-angles.z); // rotate the point c onto the XZ plane using turntable angle
   c_len = sqrt(pow((c_new.x),2)+pow(c_new.z,2));   // XZ plane, reuse variable c_len
 
@@ -335,6 +335,43 @@ void inverseArmKin(point c, float l_ab, float l_bc,point & angles) {
   } 
 }
 
+void inverseArmKin2D(point c, float l_ab, float l_bc, point & angles) {
+  // Given robot arm Ground-Turtable-AB-BC, where Turntable and A are [0,0,0]
+  // The location of joint C (point c) and the lengths AB (l_ab) and BC (l_bc) are specified
+  // The joints A,B are on a turntable with rotation T parallel to Z through A
+  // With T_angle = 0, then joints A & B are parallel to the Y axis
+  // Calculate the angles given pt C ***Inverse Kinematics***
+  // RETURNS angles (array of TYPE point) with [A_angle,B_angle,0] in radians
+  //
+  // Inverse Kinematics is a few trig formulas
+  // A Reference to the math is here: https://appliedgo.net/roboticarm/
+  //
+  float c_len, sub_angle1, sub_angle2;
+
+  angles.z = 0.0;  // 2D, this is always zero
+
+  c_len = sqrt(pow((c.x),2)+pow(c.z,2));   // XZ plane
+  // Check for near zero values to prevent bad math, arm clashes
+  if (c_len < 2.0) {  // 2 mm
+    c.x = 2.0;
+    c_len = 2.0;
+  } 
+
+  // THIS IS THE 2D INVESE KINEMATIC MATH
+  if (c_len < l_ab+l_bc) {
+    // case where robot arm can reach
+    sub_angle1 = atan2(c.z,c.x);
+    sub_angle2 = acos((pow(c_len,2)+pow(l_ab,2)-pow(l_bc,2))/(2*c_len*l_ab));
+    angles.x = sub_angle1 + sub_angle2;
+    angles.y = acos((pow(l_bc,2)+pow(l_ab,2)-pow(c_len,2))/(2*l_bc*l_ab))-180.0/RADIAN;
+  } else {
+    // case where robot arm can not reach point... 
+    angles.x = atan2(c.z,c.x); // a angle point in direction to go
+    angles.y = 0.0; // b is straight
+  } 
+}
+
+/*
 point anglesToC(float a, float b, float t, float l_ab, float l_bc){  // Forward Kinematics
   // Apply translations and rotations to get the C point
   point pB,pC, pTemp;
@@ -345,10 +382,11 @@ point anglesToC(float a, float b, float t, float l_ab, float l_bc){  // Forward 
   pTemp = rot_pt_y(pC,a); // rotate a
   pC = rot_pt_z(pTemp,t);  // rotate turntable
   return pC;
-}
+}  */
+
+//  Forward Kinematics, Apply translations and rotations to get point G
+//  Used by Teleoperated only
 point anglesToG(float a, float b, float t, float c, float d, float l_ab, float l_bc, float sCGx, float sCGy) {
-  //  Apply translations and rotations to get point G
-  //   Forward Kinematics
   point pB,pC, pG, pTemp;
   
   pB.x = l_ab;   pB.y = 0.0;  pB.z = 0.0;
@@ -383,7 +421,27 @@ float servo_map(joint & jt) { // Map current joint angle to the servo microsecon
   return floatMap(jt.current_angle, jt.svo.low_ang, jt.svo.high_ang, jt.svo.low_ms, jt.svo.high_ms);
 }
 
-void updateArmPtC(arm & the_arm) { // Moves current point C toward target_pt at given feed rate (mm/sec)
+// Move Current toward Target at given RateLimit (no units)
+// Used in Teleoperated only
+float rateLimitMove(float Target, float Current, float RateLimit) { 
+  float delta, newV;
+  delta = Target-Current;
+  if (abs(delta) > abs(RateLimit)) { // rate limit the move
+      if (delta > 0 ) { 
+        newV = Current + abs(RateLimit);  
+      } else if (delta < 0)  {
+        newV = Current - abs(RateLimit);  
+      };
+  } else {
+    newV = Current + delta;
+  }
+  return newV;
+}
+
+// Move current point C toward target_pt at given feed rate (mm/sec)
+// Parameter is arm Structure, and it is modified
+// Used in Teleoperated only
+void updateArmPtC(arm & the_arm) { 
   float moveDist,newFeedRate,distC;
   the_arm.line_len = ptpt_dist(the_arm.current_pt,the_arm.target_pt);
   if (the_arm.line_len > ZERO_DIST) { // not at target point, compute a new current point
@@ -400,6 +458,7 @@ void updateArmPtC(arm & the_arm) { // Moves current point C toward target_pt at 
     the_arm.current_pt = pt_on_line(moveDist,the_arm.line_len, the_arm.current_pt,the_arm.target_pt);
   }
 }
+
 /*
 void logPoint(arm & the_arm) {  // Use for debugging paths
   Serial.print(make3.state);
@@ -941,7 +1000,6 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
   // This is "setup" for each state
   // checks for a change in state and runs the setup for that state  
   static int old_state = -1;  // should force initialize first pass
-  static int new_x, new_y, new_z;  
 
   #define BLOCKZ -120  // This is the D point to pick a block off of the floor
 
@@ -1023,7 +1081,7 @@ void stateLoop(arm & the_arm) { // Call this Function at the top of main loop()
           the_arm.mode = HM_CD_ABS;
           make3.jC.target_angle = -90.0/RADIAN;     
           make3.jD.target_angle = 0.0/RADIAN;
-          the_arm.feedRate = 300.0;  // mm per second
+          the_arm.feedRate = 250.0;  // mm per second
           break;      
       }
     }
@@ -1117,19 +1175,6 @@ void loop() {  //########### MAIN LOOP ############
   loopTime(make3); // Capture cycle time
   
   switch (make3.state) {
-    /* case S_SERIAL: 
-      if (!runningCmd) {
-        getCmdSerial(cmd);  // returns zeros if no command
-        if (cmd.arg[0] != 0) runningCmd = true;
-      } else { /*  NEED TO FIX THIS
-        if(!runCommand(make3, cmd)) { // current command is running
-          runningCmd = true;         
-          Serial.print("running command ");        
-        } else {  // done
-          runningCmd = false;
-        };   
-      }
-      break; */
     case S_AUTO_2: 
     case S_AUTO_5:
     case S_AUTO_6:
@@ -1156,19 +1201,25 @@ void loop() {  //########### MAIN LOOP ############
 
       checkSwitch(clawSwitch);
       if (clawSwitch.isOn) make3.jCLAW.current_angle = 45.0/RADIAN;
-      else make3.jCLAW.current_angle = -45.0/RADIAN;
-      make3.jCLAW.target_angle = make3.jCLAW.current_angle; // for Claw, target should equal current always
+      else make3.jCLAW.current_angle = -10.0/RADIAN;
+      make3.jCLAW.target_angle = make3.jCLAW.current_angle; // for Claw, target should always equal current
 
-      //make3.target_pt = anglesToC(make3.jA.pot_angle,make3.jB.pot_angle,make3.jT.pot_angle,LEN_AB,LEN_BC);
-      make3.target_pt = anglesToG(make3.jA.pot_angle,make3.jB.pot_angle,make3.jT.pot_angle,make3.jC.current_angle,make3.jD.current_angle,LEN_AB,LEN_BC,S_CG_X,S_CG_Y);
+      // Convert Input Arm angles to Robot Arm Point G (gripper)
+      // UPDATE:  removed the Turntable Angle, (set it to always be zero)
+      make3.target_pt = anglesToG(make3.jA.pot_angle , make3.jB.pot_angle, 0.0 , make3.jC.current_angle , make3.jD.current_angle , LEN_AB , LEN_BC , S_CG_X , S_CG_Y);
 
-      updateArmPtC(make3);   // Move current_pt toward target_pt at given feed rate (mmps)
+      // Move current point C toward target_pt at given feed rate (mm/sec)
+      updateArmPtC(make3);   
       c_pt = pointGtoPointC(make3.current_pt,make3.jC.target_angle,make3.jD.target_angle,S_CG_X,S_CG_Y);
       
-      inverseArmKin(c_pt,LEN_AB,LEN_BC,angles);    // FIND JOINTS A B T from POINT C
+      // FIND JOINTS A B T from POINT C
+      // UPDATE:  Make 2D version, without Turntable
+      inverseArmKin2D(c_pt,LEN_AB,LEN_BC,angles);    
       make3.jA.current_angle = angles.x; //  A 
       make3.jB.current_angle = angles.y;  // local B
-      make3.jT.current_angle = angles.z;  //  T
+
+      // UPDATE: SET DIRECT TO POT ANGLE??? OR MAKE SMOOTH UPDATE METHOD
+      make3.jT.current_angle = rateLimitMove(make3.jT.pot_angle , make3.jT.current_angle , 0.006); // angles.z;  //  T
       
       loopUpdateWrist(make3);  // HAND JOINT UPDATE 
       updateJointBySpeed(make3.jC, make3.dt);  
