@@ -254,7 +254,7 @@ module switch(negative = false) {  //12x12x5mm Mini/Micro/Small PCB Momentary Ta
         translate([-6,0,-5]) cube([2,8,12],center=true);
     }
 }
-//switch(true,$fn=FACETS);
+*switch(true,$fn=FACETS);
 
 module BC_Arm(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
@@ -296,10 +296,10 @@ module BC_Assy() {
     // DRAW THE BC ARM 
     translate([0,0,-OUTER_LUG_THK]) BC_Arm(len=lenBC);
     translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
-    translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // switch
+    translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // for switch
     translate([lenBC,0,2]) rotate([0,180,0]) Screw(length=10,dia=4); // Screw
 }
-*BC_Assy();
+*7BC_Assy();
 
 module Input_Arm_Assembly(B_angle = 0){
     // Display the Input Arm Assembly from the AB arm and on

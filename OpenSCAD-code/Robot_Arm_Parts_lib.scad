@@ -305,68 +305,6 @@ module curved_beam(rot1 = 180, radOfCurve = 20, t1 = 5, t2 = 10) {
 }
 curved_beam(rot1 = 135, $fn=64);
 
-module compliant_claw2(len=160,width=120,t1=2,t2=38,r=18,pre_angle=15) {
-    // U shaped claw with a pre angle
-    //    t1 = general compliant thickness
-    //    t2 = height of part
-    // implement corner chamfers
-    // Draws half and uses mirror
-    $fa=$preview ? 6 : 1; // minimum angle fragment
-    $fs=0.05; // minimum size of fragment (default is 2)
-    
-    poly_z = t2/2;
-    module subtract_2 () { // triangle removal on end of claw
-        linear_extrude(height = t2, convexity=10)
-            polygon(points=[[-t2/3,0],[0,t2/3],[t2/3,0],[-t2/3,0]]);
-    }
-    
-    module half_claw (link_adjust=0) {    
-        // The Half Cylinder part of the claw
-        rotate([0,0,-90])
-            translate([-r-t1,width/2-r,0])
-            rotate([0,0,-90]) 
-            curved_beam(rot1=180+pre_angle,radOfCurve = r,t1=t1,t2=t2);
-            *rotate_extrude(angle=180+pre_angle,convexity = 20)
-                translate([r, 0, 0])
-                    square([t1,t2],center=false); // on X,Z plane
-        
-        // Everything else
-        // The long Finger and the link to the servo
-        // Multiple transformations to the preload
-        y_link = link_adjust+r;
-        translate([width/2-r,r+t1,0])
-        rotate([0,0,pre_angle]) 
-        translate ([r,0,0]) { // x=r
-            translate([0,link_adjust+r,0]) servo_connection(len=52,t1=t1,t2=t2);
-            
-            // Long finger thicker section
-            cube([2*t1,len/1.5-r,t2],center=false);
-            
-            difference () {
-                // Long finger full length
-                cube([t1,len-r,t2],center=false);
-                // subtract end chamfers
-                translate ([-t2/10,len-r+t1,-t1]) rotate ([90,0,90]) subtract_2();
-                translate ([t2/2,len-r+t1,t2+1]) rotate ([-90,0,90]) subtract_2();
-            }
-        }
-    } // end module half_claw
-    
-    // back plate
-    x9 = width-4*r;  // local x
-    back_height = t2; // match claw interface
-    translate([-x9/2,r-3*t1,0]) cube([x9,6*t1,back_height],center=false);
-    
-    End_w = 10; // End effector interface width, mm
-    // Add a cube to connect the back plate
-    translate([-End_w/2,-r,0]) cube([End_w,2*r,t2],center=false);
-    
-    // DRAW THE CLAW HALVES
-    half_claw (link_adjust=24); // modify link location this side
-    mirror([1,0,0]) half_claw (link_adjust=9); 
-}
-*compliant_claw2(len=150,width=120,t1=2,t2=25,r=18,pre_angle=15);
-*translate ([0,0,40]) compliant_claw2 (len=claw_length,width=claw_width,t1=claw_t,t2=claw_height,r=claw_radius,pre_angle=15);
 
 module pulley(r=2,t=.5,d_pin=0.25,d_grv=0.25,round=true){
     // Create pulley on xy plane at 0,0,0 of radius r
@@ -1280,3 +1218,66 @@ module draw_spring(pt1=[100,0,50],pt2=[100,100,50],freelen=10) {
     pt_pt_cylinder(from=pt1, to=pt2, d=sprd);
 }
 *draw_spring();
+
+module compliant_claw2(len=160,width=120,t1=2,t2=38,r=18,pre_angle=15) {
+    // U shaped claw with a pre angle
+    //    t1 = general compliant thickness
+    //    t2 = height of part
+    // implement corner chamfers
+    // Draws half and uses mirror
+    $fa=$preview ? 6 : 1; // minimum angle fragment
+    $fs=0.05; // minimum size of fragment (default is 2)
+    
+    poly_z = t2/2;
+    module subtract_2 () { // triangle removal on end of claw
+        linear_extrude(height = t2, convexity=10)
+            polygon(points=[[-t2/3,0],[0,t2/3],[t2/3,0],[-t2/3,0]]);
+    }
+    
+    module half_claw (link_adjust=0) {    
+        // The Half Cylinder part of the claw
+        rotate([0,0,-90])
+            translate([-r-t1,width/2-r,0])
+            rotate([0,0,-90]) 
+            curved_beam(rot1=180+pre_angle,radOfCurve = r,t1=t1,t2=t2);
+            *rotate_extrude(angle=180+pre_angle,convexity = 20)
+                translate([r, 0, 0])
+                    square([t1,t2],center=false); // on X,Z plane
+        
+        // Everything else
+        // The long Finger and the link to the servo
+        // Multiple transformations to the preload
+        y_link = link_adjust+r;
+        translate([width/2-r,r+t1,0])
+        rotate([0,0,pre_angle]) 
+        translate ([r,0,0]) { // x=r
+            translate([0,link_adjust+r,0]) servo_connection(len=52,t1=t1,t2=t2);
+            
+            // Long finger thicker section
+            cube([2*t1,len/1.5-r,t2],center=false);
+            
+            difference () {
+                // Long finger full length
+                cube([t1,len-r,t2],center=false);
+                // subtract end chamfers
+                translate ([-t2/10,len-r+t1,-t1]) rotate ([90,0,90]) subtract_2();
+                translate ([t2/2,len-r+t1,t2+1]) rotate ([-90,0,90]) subtract_2();
+            }
+        }
+    } // end module half_claw
+    
+    // back plate
+    x9 = width-4*r;  // local x
+    back_height = t2; // match claw interface
+    translate([-x9/2,r-3*t1,0]) cube([x9,6*t1,back_height],center=false);
+    
+    End_w = 10; // End effector interface width, mm
+    // Add a cube to connect the back plate
+    translate([-End_w/2,-r,0]) cube([End_w,2*r,t2],center=false);
+    
+    // DRAW THE CLAW HALVES
+    half_claw (link_adjust=24); // modify link location this side
+    mirror([1,0,0]) half_claw (link_adjust=9); 
+}
+*compliant_claw2(len=150,width=120,t1=2,t2=25,r=18,pre_angle=15);
+*translate ([0,0,40]) compliant_claw2 (len=claw_length,width=claw_width,t1=claw_t,t2=claw_height,r=claw_radius,pre_angle=15);

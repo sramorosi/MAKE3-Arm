@@ -17,13 +17,13 @@ use <ME_lib.scad>  // Mechanical Engineering Library
 
 // Animation Commands to create an orbital fly-around:
 // view point rotation (spins the part)
-$vpr = [20,($t-0.5) * 30,90];   
+//$vpr = [20,($t-0.5) * 30,90];   
 // view point translation
-$vpt = [70,0,0];    
+//$vpt = [70,0,0];    
 // view point field of view
-$vpf = 60;          
+//$vpf = 60;          
 // view point distance
-$vpd = 140;         
+//$vpd = 140;         
 //
 // boolean to toggle assembly drawing
 DRAW_ASSY = true;
@@ -54,8 +54,8 @@ BAR_THK = 5;
 // Finger width (mm)
 BAR_HGT = 16;
 // Hole size for Spring Steel Slotted Spring Pin, 5/64" Diameter
-PIN_DIA = 2.6; 
-// Rod thickness (mm)
+PIN_DIA = 2.4; 
+// Rod thickness (mm)7
 ROD_THK = 6;
 //  Block Size (mm) display only
 BLOCK = 50; 
@@ -88,7 +88,7 @@ module curved_link(L=30,R=30,THK=5,HGT=10) {
             [4+HGT,-THK],[4+HGT,2.5*THK],[4,L-THK],[4,2*L],[0,2*L]]);
     }
 }
-*curved_link(L=D_ROD,R=D_ROD,THK=ROD_THK,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
+*curved_link(L=D_ROD,R=D_ROD,THK=ROD_THK*1.2,HGT=BAR_HGT); // Export as STL (quantity 2), supports required
 
 module guide() {  // BLOCK GUIDE
     GUAGE = 2;  // guide guage
@@ -109,6 +109,53 @@ module guide() {  // BLOCK GUIDE
 }
 *guide(); // Export as STL (quantity 2)
 
+module guide2() {  // BLOCK GUIDE
+    HALFARM = 35;  // half arm length
+    GUAGE = 2.5;  // guide guage
+    FINGLEN = 22; // finger length
+    FINGW = 13; // finger width
+    FINGT = 1.2;  // finger thickness
+    color("Silver") {
+        difference() {
+            translate([0,0,-2]) linear_extrude(10,convexity=10) {
+                base_poly();
+                mirror([0,1,0]) base_poly();
+            }
+            rotate([0,15,0]) translate([0,0,-2]) 
+                cube([3*HALFARM,3*HALFARM,4],center=true);
+        }
+        rotate([0,15,0]) {
+            translate([FINGLEN/2+1,HALFARM-FINGW/2,FINGT/2]) finger();
+            translate([FINGLEN/2+1,HALFARM/2-FINGW/2+3.3,FINGT/2]) finger();
+            translate([FINGLEN/2+1,0,FINGT/2]) finger();
+            translate([FINGLEN/2+1,-HALFARM/2+FINGW/2-3.3,FINGT/2]) finger();
+            translate([FINGLEN/2+1,-HALFARM+FINGW/2,FINGT/2]) finger();
+        }
+        //finger();
+    }
+    
+    module finger() {
+        cube([FINGLEN,FINGW,FINGT],center=true);
+        translate([-FINGLEN/2,-FINGW/2,FINGT+.4]) 
+            rotate([0,35,0]) 
+                cube([3.2,FINGW,1.1],center=false);
+    };
+    
+    module base_poly() {
+        polygon([[0,0],
+        [0,0.1+BAR_HGT/2],
+        [-BAR_THK-0.1,0.1+BAR_HGT/2],
+        [-BAR_THK-0.1,BAR_HGT/2.8],
+        [-1.5*BAR_THK,BAR_HGT/2.8],
+        [-1.5*BAR_THK,BAR_HGT/1.7],
+        [-2,BAR_HGT/1.3],
+        [0,HALFARM],
+        [GUAGE,HALFARM],
+        [GUAGE,0]]);
+    };
+}
+*guide2(); // Export as STL (quantity 2)
+
 module claw_bar(L=100,L_ROD=20) {
     color("SkyBlue") difference() { // subtract pin holes from polygon
         union() {
@@ -128,7 +175,7 @@ module claw_bar(L=100,L_ROD=20) {
 
 module claw_assy(L=130,L_ROD) { // Combines bar and guide, Click Together!
     claw_bar(L,L_ROD=D_FINGER_ROD);
-    translate([L-2,-BAR_THK/2,0]) rotate([90,0,-90]) guide();
+    translate([L-2,-BAR_THK/2,0]) rotate([90,0,-90]) guide2();
 }
 *claw_assy(); 
 
@@ -172,7 +219,7 @@ module draw_assy (angClaw=90,angRod=0,claw=10,rod=5,AY=0,Y2=10,L=120,RODS=0.9) {
         claw_assy(L,D_FINGER_ROD); // Claw
         
         translate([claw,0,0]) rotate([0,0,angRod]) { // Rod
-            rotate([0,0,-90]) curved_link(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK,HGT=BAR_HGT);
+            rotate([0,0,-90]) curved_link(L=D_ROD,R=RODS*D_ROD,THK=ROD_THK*1.2,HGT=BAR_HGT);
         }
     }
 }

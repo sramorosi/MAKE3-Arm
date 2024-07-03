@@ -263,7 +263,7 @@ module torque_arrow(to=[10,4,0],mag=10) {
     // draw a torque of diameter abs(mag), at to point
     // assumes torque is on x,y plane (for now)
     // arrowhead changes direction with sign of mag
-    $fn = $preview ? 20 : 72;     // number of fragments
+    $fn = $preview ? 40 : 72;     // number of fragments
     d = abs(mag); // used to scale arrow
     sclr=d*.025; // scaler for arrow shaft
     if (abs(mag)>0.1) {
