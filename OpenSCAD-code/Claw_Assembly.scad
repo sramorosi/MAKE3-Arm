@@ -146,7 +146,7 @@ module guide2() {  // BLOCK GUIDE
         [0,0.1+BAR_HGT/2],
         [-BAR_THK-0.1,0.1+BAR_HGT/2],
         [-BAR_THK-0.1,BAR_HGT/2.8],
-        [-1.5*BAR_THK,BAR_HGT/2.8],
+        [-1.5*BAR_THK,BAR_HGT/2.3],
         [-1.5*BAR_THK,BAR_HGT/1.7],
         [-2,BAR_HGT/1.3],
         [0,HALFARM],
@@ -160,11 +160,21 @@ module claw_bar(L=100,L_ROD=20) {
     color("SkyBlue") difference() { // subtract pin holes from polygon
         union() {
             translate([0,0,-BAR_HGT/2]) linear_extrude(BAR_HGT,convexity=10)
-                polygon([[0,BAR_THK/1.9],[L_ROD,BAR_THK/1.5],
-                [L,BAR_THK/2],[L,-BAR_THK],
-                [L-2,-BAR_THK],[L-2,-BAR_THK/2],[L-2.2-BAR_HGT/2,-BAR_THK/2],
-                [L-2.2-BAR_HGT/2,-BAR_THK],[L-6-BAR_HGT/2,-BAR_THK],
-                [L-8-BAR_HGT/2,-BAR_THK/2],[0,-BAR_THK/1.9]]);
+                polygon([[0,BAR_THK/1.9],
+                    [L_ROD,BAR_THK/1.5],
+                    [L,BAR_THK/2],
+                    [L,-BAR_THK],
+                [L-2,-BAR_THK],
+                [L-2,-BAR_THK/2],
+                [L-2.2-BAR_HGT/2,-BAR_THK/2],
+                [L-2.2-BAR_HGT/2,-BAR_THK],
+                [L-20.2,-BAR_THK],
+                [L-20.2,-BAR_THK/2],
+                [L-20.2-BAR_HGT/2,-BAR_THK/2],
+                [L-20.2-BAR_HGT/2,-BAR_THK],
+                [L-26-BAR_HGT/2,-BAR_THK],
+                [L-28-BAR_HGT/2,-BAR_THK/2],
+                [0,-BAR_THK/1.9]]);
             cylinder(BAR_HGT,d=BAR_THK,center=true,$fn=FACETS);
         }
         translate([0,0,-25]) cylinder(50,d=PIN_DIA,$fn=FACETS);  // PIN HOLE
@@ -176,6 +186,7 @@ module claw_bar(L=100,L_ROD=20) {
 module claw_assy(L=130,L_ROD) { // Combines bar and guide, Click Together!
     claw_bar(L,L_ROD=D_FINGER_ROD);
     translate([L-2,-BAR_THK/2,0]) rotate([90,0,-90]) guide2();
+    translate([L-20,-BAR_THK/2,0]) rotate([90,0,-90]) guide2();
 }
 *claw_assy(); 
 

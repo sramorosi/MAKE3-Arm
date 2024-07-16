@@ -144,79 +144,93 @@ module simple_link (l=50,w=5,t=4,d=1,cored=0) {
 }
 *simple_link();
 
-module dog_leg2 (d1=45,ang=45,d2=12.77,w=15,t=15) {
-    // Create a Dog Leg part on the xy plane, along x axis
-    // First length is d1, turn is ang, second length is d2
+module dog_leg2(len1=50,ang=90,len2=50,w=15,t=15) {
+    // Create a Dog Leg Link on the xy plane, along x axis
+    // Lugs at both ends
+    // Angles between 0 and 90 only
+    // First length is len1, turn is ang, second length is len2
     // Thickness is t, positive z from zero
     // Width is w
     // Sharp knee is better for printing
     $fa=$preview ? 6 : 1; // minimum angle fragment
     $fs=0.02; // minimum size of fragment (default is 2)
-    dx = d1 + d2*cos(ang); // x of end of leg
-    dy = d2*sin(ang);      // y of end of leg
-    Pdist = sqrt(dx*dx+dy*dy);
-    xtra=tan(ang/2)*(w/2);
-    fx=d1-xtra;
-    fs = 0.02*Pdist;  // inside chamfer size
-    rotate([0,0,180]) translate ([-dx,0,-t/2]) 
-        union () {
-            translate([0,-w/2,0]) // first leg
-                cube([d1+xtra,w,t],center=false);
-            cylinder(h=t,d=w,center=false); // rounded end d1
-            translate([d1,0,0])   // second leg
-                rotate([0,0,ang])
-                    translate([-xtra,-w/2,0])
-                        cube([d2+xtra,w,t],center=false);
-            translate([dx,dy,0])   // rounded end d2
-                cylinder(h=t,d=w,center=false);
-            linear_extrude(height=t,convexity=10) // add inside chamfer
-                polygon([[fx,w/2],[fx-fs,w/2],[fx+fs,w/2+fs*tan(ang)],[fx+fs,w/2],[fx,w/2]]);
+    if (ang>=0 && ang <=90) {
+        dx = len1 + len2*cos(ang); // x of end of leg
+        dy = len2*sin(ang);      // y of end of leg
+        Pdist = sqrt(len1*len1+len2*len2);
+        xtra=tan(ang/2)*(w/2);
+        chmf = 0.03*Pdist;  // inside chamfer size
+        rotAng = atan2(dy,dx);
+        rotate([0,0,-rotAng]) translate ([0,0,0]) 
+            union () {
+                translate([0,-w/2,0]) // first leg
+                    cube([len1+xtra,w,t],center=false);
+                cylinder(h=t,d=w,center=false); // rounded end len1
+                translate([len1,0,0])   // second leg
+                    rotate([0,0,ang])
+                        translate([-xtra,-w/2,0])
+                            cube([len2+xtra,w,t],center=false);
+                translate([dx,dy,0])   // rounded end len2
+                    cylinder(h=t,d=w,center=false);
+                // add inside chamfer
+                color("yellow") 
+                linear_extrude(height=t,convexity=10) 
+                    polygon([[len1,0],
+                        [len1-xtra-chmf,w/2],
+                        [len1-xtra+chmf,w/2+chmf*sin(ang)]]);
+        }
     }
 }
-module dog_leg (d1=10,ang=45,d2=5,w=2,t=1) {
+dog_leg2();
+
+module dog_leg (len1=10,ang=45,len2=5,w=2,t=1) {
     // Create a Dog Leg part on the xy plane, along x axis
-    // First length is d1, turn is ang, second length is d2
+    // First length is len1, turn is ang, second length is len2
     // Thickness is t, positive z from zero
     // Width is w
     // Sharp knee is better for printing
     $fa=$preview ? 6 : 1; // minimum angle fragment
     $fs=0.02; // minimum size of fragment (default is 2)
-    dx = d1 + d2*cos(ang); //x of end of leg
-    dy = d2*sin(ang);      // y of end of leg
+    dx = len1 + len2*cos(ang); //x of end of leg
+    dy = len2*sin(ang);      // y of end of leg
     Pdist = sqrt(dx*dx+dy*dy);
     xtra=tan(ang/2)*(w/2);
-    fx=d1-xtra;
-    fs = 0.02*Pdist;  // inside chamfer size
+    len1xtra=len1-xtra;
+    chmf = 0.02*Pdist;  // inside chamfer size
     translate ([0,-dy,0]) 
         union () {
         translate([0,-w/2,0]) // first leg
-            cube([d1+xtra,w,t],center=false);
-        translate([d1,0,0])   // second leg
+            cube([len1+xtra,w,t],center=false);
+        translate([len1,0,0])   // second leg
             rotate([0,0,ang])
                 translate([-xtra,-w/2,0])
-                    cube([d2+xtra,w,t],center=false);
+                    cube([len2+xtra,w,t],center=false);
         translate([dx,dy,0])   // rounded end
             cylinder(h=t,d=w,center=false);
         linear_extrude(height=t,convexity=10) // add inside chamfer
-            polygon([[fx,w/2],[fx-fs,w/2],[fx+fs,w/2+fs*tan(ang)],[fx+fs,w/2],[fx,w/2]]);
+            polygon([[len1xtra,w/2],
+            [len1xtra-chmf,w/2],
+            [len1xtra+chmf,w/2+chmf*tan(ang)],
+            [len1xtra+chmf,w/2],
+            [len1xtra,w/2]]);
     }
 }
-
-module fancy_dog_leg (d1=50,ang=45,d2=20,w=15,t=25,d_pin=1,wall=3) {
+*dog_leg();
+module fancy_dog_leg (len1=50,ang=45,d2=20,w=15,t=25,d_pin=1,wall=3) {
     // Create dog leg with center and pin-holes removed
     // padeye is the same thing as a lug 
     // The padeyes will fit a pin of diameter d_pin
     // wall is the wall thickness of the link
     $fa=$preview ? 6 : 1; // minimum angle fragment
     $fs=0.1; // minimum size of fragment (default is 2)
-    dx = d1 + d2*cos(ang);
+    dx = len1 + d2*cos(ang);
     dy = d2*sin(ang);
     t_inside = t-2*wall; // z direction
     w_inside = w-2*wall; // y direction
     clevis_r = (d2<w) ? w : d2/1 ;
     fillet_r = t/3;
     difference() {
-        dog_leg(d1,ang,d2,w,t);
+        dog_leg(len1,ang,d2,w,t);
         
         translate([dx,0,-t/2])   // hole for pin
             cylinder(h=t*2,d=d_pin,center=false);
@@ -224,7 +238,7 @@ module fancy_dog_leg (d1=50,ang=45,d2=20,w=15,t=25,d_pin=1,wall=3) {
         // remove rounded cube to make clevis
         translate([dx-1.05*w,w,t_inside+wall])   
             rotate([-15,90,-90])
-            rounded_cube([t_inside,4*w_inside,d1+d2],fillet_r,center=false);
+            rounded_cube([t_inside,4*w_inside,len1+d2],fillet_r,center=false);
     }
 }
 module hollow_offset_link (length=50,d_pin=2,w=10,t=10,offset=5,ang=45,wall=2) {
@@ -303,7 +317,7 @@ module curved_beam(rot1 = 180, radOfCurve = 20, t1 = 5, t2 = 10) {
         translate([radOfCurve, 0, 0])
             square([t1,t2],center=false); // on X,Z plane
 }
-curved_beam(rot1 = 135, $fn=64);
+*curved_beam(rot1 = 135, $fn=64);
 
 
 module pulley(r=2,t=.5,d_pin=0.25,d_grv=0.25,round=true){
@@ -881,7 +895,8 @@ module P090L_pot (negative=false) {
     zbDif = zbody+1;  // make body bigger for difference()
 
     scale([ss,ss,ss]){ // scale down the model for display
-        color("green") if (!negative) { // potentiometer for display
+        color("green") 
+        if (!negative) { // potentiometer for display
             translate([0,0,-zbody/2]) cube([10,12,zbody],center=true);
             // two cylinders on backside, drawn larger than real
             translate([0,-8.5/2,-zbody]) cylinder(h=4,d=3,center=true,$fn=FACETS);
@@ -889,7 +904,7 @@ module P090L_pot (negative=false) {
 
         } else {         // potentiometer for difference()
             translate([0,0,-zbDif/2]) cube([10,12.5,zbDif],center=true);
-            translate([0,-12.5,-zbDif/2]) cube([10,20,zbDif],center=true);
+            translate([0,-12.5,-zbDif/2]) cube([10,30,zbDif],center=true);
         }
         
         cylinder(h=2,d=7.2,center=true,$fn=FACETS); // ring around the shaft
@@ -918,7 +933,7 @@ module P090L_pot (negative=false) {
         cube([1.5,10,0.5],center=true);
     }
 }
-*P090L_pot(negative=false);
+P090L_pot(negative=true);
 *translate([20,0,0]) P090L_pot(negative=false);
 
 module RV112FF_pot (L=19,negative=false) {

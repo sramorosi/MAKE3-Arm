@@ -21,10 +21,10 @@ $vpd = 150;         // view point distance
 // Parameters for Customizer:
 // Joint A angle
 //AA = 25; // [0:180.0]
-AA = 90*sin($t*180);  // for animation
+AA = 100; //-90*sin($t*180);  // for animation
 // Joint B angle
 //BB = -35; // [-170:1:0.0]
-BB = -90*sin($t*180);  // for animation
+BB = -50; //90*sin($t*180);  // for animation
 // Turntable angle
 //TT = 0; // [-90:90]
 TT = 60*sin($t*90);  // for animation
@@ -56,14 +56,14 @@ lenBC=SCALE*LEN_BC_LARGE;      // mm
 echo("Baby Arm lengths",SCALE=SCALE,lenAB=lenAB,lenBC=lenBC," mm");
 
 // A joint shift Z (up), mm
-A_joint_Z = 40; 
+A_joint_Z = 34; 
 // A joint shift X (lateral), mm
 A_joint_X = -9;
 
 // Lug Diameter, mm, used by many
 LUG_DIA = 22; 
 // distance to the flat side from the bore
-FLAT_DIST = 20;
+FLAT_DIST = 16;
 // Main Lug Thickness, mm
 MAIN_LUG_THK = 6;
 OUTER_LUG_THK = 4;
@@ -79,24 +79,36 @@ SCREW_DIA = 3.3; // mm, For no. 4 plastic screw, length 0.75 inch
 zbody = 5.5;  // Offset for potentiometer body, all units are mm
 
 module screwHoles(dia=15,shrink=false) { // pair of screw holes that hold the stack together
-    cylDia = shrink ? SCREW_DIA*0.9 : SCREW_DIA;
-    translate([dia/2.8,-dia/2-4,0])  cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
-    translate([-dia/2.8,-dia/2-4,0]) cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
+    cylDia = shrink ? SCREW_DIA*0.76 : SCREW_DIA;
+    translate([dia/2.8,-dia/2-1,0]) 
+        cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
+    translate([-dia/2.8,-dia/2-1,0]) 
+        cylinder(h=4*dia,d=cylDia,center=true,$fn=FACETS);
 }
+*rotate([0,0,180]) screwHoles(dia=LUG_DIA);
+
 module ScrewsInHoles(lug_dia=15,screw_dia=4,screw_len=10) { // pair of screws
     // Rounded Head Thread-Forming Screws for Plastic
-    translate([lug_dia/2.8,-lug_dia/2-4,0])  Screw(length=screw_len,dia=screw_dia);
-    translate([-lug_dia/2.8,-lug_dia/2-4,0]) Screw(length=screw_len,dia=screw_dia);
+    translate([lug_dia/2.8,-lug_dia/2-1,0])  Screw(length=screw_len,dia=screw_dia);
+    translate([-lug_dia/2.8,-lug_dia/2-1,0]) Screw(length=screw_len,dia=screw_dia);
 }
 
-module roundTopLug (dia=15,hgt=20,thk=5,bore=3,cyl=true) {  // Full round top, width = dia
+// Full round top, width = dia
+module roundTopLug (dia=15,hgt=20,thk=5,bore=3,cyl=false) {  
     difference() {
             hull() {
-                if(cyl) translate([0,0,thk/2]) cylinder(h=thk,d=dia,center=true);
-                else RoundedWasher(d=dia,t=thk,fillet=3);
-                translate([0,-hgt/2,thk/2]) cube([dia,hgt,thk],center=true);
+                translate([0,0,thk/2]) cylinder(h=thk,d=dia,center=true);
+                translate([0,-hgt*3/4,thk/2]) cube([dia,hgt/2,thk],center=true);
             }
         cylinder(h=4*thk,d=bore,center=true);  // remove bore
+            
+        if(cyl) {    
+            translate([dia/1.9,-dia/3.1,0]) 
+                cylinder(h=hgt*2,d=dia/3.2,center=true,$fn=FACETS);
+            translate([-dia/1.9,-dia/3.1,0]) 
+                cylinder(h=hgt*2,d=dia/3.2,center=true,$fn=FACETS);
+        }
+            
     }
 }
 *roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,$fn=FACETS);  // note result if hgt < dia/2
@@ -116,9 +128,9 @@ module roundTopLugTwo (width=20,rad=2,hgt=8,thk=5,bore=3) { // Two radius round 
 }
 *roundTopLugTwo(bore=0,$fn=FACETS);  // note result if hgt < dia/2
 
-module PotLug() {  // Model of Potentiometer holder
+module PotLug(dia=LUG_DIA) {  // Model of Potentiometer holder
     color("blue") difference () {// Side that holds the POT
-        roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=POT_LUG_THK,bore=POT_HOLE_DIA,$fn=FACETS);
+        roundTopLug(dia=dia,hgt=FLAT_DIST,thk=POT_LUG_THK,bore=POT_HOLE_DIA,$fn=FACETS);
 
         translate([0,0,zbody]) P090L_pot(negative=true);// remove potentiometer interface
 
@@ -132,10 +144,18 @@ module NonPotLug(thk=OUTER_LUG_THK) {  // Model of Potentiometer holder
             union() {
             translate([0,0,MAIN_LUG_THK]) 
                 roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=thk,bore=POT_HOLE_DIA,$fn=FACETS);
-            translate([-LUG_DIA/2,-FLAT_DIST,0]) cube([LUG_DIA,8.5,MAIN_LUG_THK],center=false);
+            translate([-LUG_DIA/2,-FLAT_DIST,0]) 
+                cube([LUG_DIA,8.5,MAIN_LUG_THK],center=false);
         }
         // remove screw holes
         screwHoles(dia=LUG_DIA,shrink=true);
+        
+        // remove lug arc from cube
+        translate([0,0,-.2]) 
+            cylinder(h=MAIN_LUG_THK+.4,d=LUG_DIA*1.03,center=false,$fn=FACETS);
+        
+        // remove spring wave washer dish
+        cylinder(h=MAIN_LUG_THK+.6,d=9.1,center=false,$fn=FACETS);
     }
 }
 *rotate([0,180,0]) NonPotLug(); // Export as STL... F7 (quantity 2)
@@ -161,28 +181,6 @@ module PotCoverAssy() {
 }
 *PotCoverAssy();
 
-module BasePotCover() {
-    color("SlateBlue") 
-    difference () {// Side that holds the POT
-        roundTopLug(dia=LUG_DIA*1.7,hgt=FLAT_DIST,thk=OUTER_LUG_THK,bore=3,$fn=FACETS);
-        // remove potentiometer interface
-        translate([0,0,OUTER_LUG_THK+zbody]) P090L_pot(negative=false);
-        
-        screwHoles(dia=LUG_DIA);  // remove screw holes
-
-        translate([LUG_DIA/1.5,0,0])  cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
-        translate([-LUG_DIA/1.5,0,0]) cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
-    }
-}
-*BasePotCover(); // Export as STL... F7 (quantity 1)
-
-module BasePotCoverAssy() {
-    BasePotCover();
-    ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
-    
-    translate([LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
-    translate([-LUG_DIA/1.5,0,OUTER_LUG_THK]) rotate([0,180,0]) Screw(length=10,dia=4);
-}
 
 module joint_visuals(cut=true) { // Use for cross section cuts of Joints
     difference() { 
@@ -191,8 +189,10 @@ module joint_visuals(cut=true) { // Use for cross section cuts of Joints
             translate([0,0,zbody]) P090L_pot(negative=false); 
             translate([0,0,POT_LUG_THK]) NonPotLug(); // OR SELECTOR BASE
             translate([0,0,-OUTER_LUG_THK]) PotCoverAssy();
-            rotate([0,0,90]) translate([0,0,MAIN_LUG_THK+.2]) scale([.95,.95,.95]) 
-                AB_Arm(len = lenAB);
+            rotate([0,0,90]) 
+                translate([0,0,MAIN_LUG_THK+.2]) 
+                    scale([.95,.95,.95]) 
+                        AB_Arm(len = lenAB);
        }
        if (cut) translate([-20,0,0]) cube([40,80,40],center=true);  // Section Cut cube
     }
@@ -207,8 +207,10 @@ module zip_holes() {
 module AB_Arm(len=100) {
     color("plum",1) difference () {
         union() {
-            translate([0,0,8]) rotate([180,0,-90]) difference() {
-                    roundTopLug(dia=LUG_DIA,hgt=LUG_DIA,thk=MAIN_LUG_THK,bore=3,$fn=FACETS);
+            translate([0,0,8]) 
+                rotate([180,0,-90]) 
+                difference() {
+                    roundTopLug(dia=LUG_DIA,hgt=FLAT_DIST,thk=MAIN_LUG_THK, bore=3, cyl=true,$fn=FACETS);
                 // remove potentiometer interface
                 translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) rotate([0,0,180]) 
                     P090L_pot(negative=true);
@@ -219,10 +221,10 @@ module AB_Arm(len=100) {
             
             // The connecting cube:
             difference() { // REMOVE CYL SO THAT 0,0 LUG JOINT UNIONS PROPERLY
-                translate([0,-LUG_DIA/2,LUG_Z]) 
-                    cube([len-LUG_DIA/1.2,LUG_DIA,MAIN_LUG_THK],center=false);
+                translate([LUG_DIA/1.8,-LUG_DIA/2,LUG_Z]) 
+                    cube([len-LUG_DIA/.8,LUG_DIA,MAIN_LUG_THK],center=false);
                 cylinder(h=40,d=8,center=true,$fn=FACETS); // for the pot
-                translate([len/2,0,0]) zip_holes();
+                translate([len/2.6,0,0]) zip_holes();
            }
         }
     }
@@ -258,48 +260,51 @@ module switch(negative = false) {  //12x12x5mm Mini/Micro/Small PCB Momentary Ta
 
 module BC_Arm(len=100) {
     // BC arm is designed so that it can not hyperextend (i.e. A-B-C can be inline, but not more)
-    angSin = asin(LUG_DIA/len);
-    upSizeElbow = 2;
+    angSin = asin(0.3*LUG_DIA/len);
+    //upSizeElbow = 2;
+    BEND_ANG = 30; // DEG
+    LEN1_RATIO = 0.2;
+    len1 = len*LEN1_RATIO;
+    ang1 = asin(LEN1_RATIO*sin(180-BEND_ANG));
+    ang2 = 180-(180-BEND_ANG)-ang1;
+    len2 = sqrt(len*len + len1*len1-2*len*len1*cos(ang2));
+    //echo(ang2=ang2,len2=len2);
     color("purple",1) {
-        // lug at 0,0
         difference() {
-            rotate([0,0,180]) 
-                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA-upSizeElbow,thk=MAIN_LUG_THK,bore=3);
+            translate([0,0,MAIN_LUG_THK]) rotate([180,0,0])
+                dog_leg2(len1=len1,ang=BEND_ANG,len2=len2,w=LUG_DIA,t=MAIN_LUG_THK);
             // remove potentiometer interface
             translate([0,0,-LUG_Z]) scale([1.02,1.02,1.02]) P090L_pot(negative=true);
+            translate([len,0,0]) cylinder(h=20,d=SCREW_DIA,center=true,$fn=FACETS);
+            translate([len/3.6,-6,0]) cylinder(h=20,d=18,center=true,$fn=FACETS);
         }
-        
-        // lug at extreme end.  To hold push button switch
-        translate([len,0,0]) 
-            difference() {
-                rotate([0,0,-90-angSin]) 
-                 roundTopLug(dia=LUG_DIA*0.85,hgt=len+4,thk=MAIN_LUG_THK,bore=SCREW_DIA,$fn=FACETS);
-                rotate([90,0,90]) translate([0,-1,3]) switch(true,$fn=FACETS);
-                
-                translate([-len/2,10,0]) zip_holes();
-            } 
-        translate([upSizeElbow,LUG_DIA-upSizeElbow-0.6,3]) cylinder(h=MAIN_LUG_THK,d=LUG_DIA+2*upSizeElbow,center=true,$fn=FACETS);
     }
 }
-*rotate([180,0,0]) BC_Arm(len=lenBC); // Export as STL... F7 (quantity 1)
+*BC_Arm(len=lenBC); // Export as STL... F7 (quantity 1)
 
 module BC_Arm_Cap() {
-    color("lightblue") difference() {
-        translate([0,0,4]) cylinder(h=8,d=LUG_DIA*0.85,center=true,$fn=FACETS);
-        rotate([90,0,90]) translate([0,1,3]) switch(true,$fn=FACETS);
-        cylinder(h=20,d=SCREW_DIA*.92,center=true,$fn=FACETS);
+    color("RED") 
+    difference() {
+        translate([0,0,-3]) sphere(d=LUG_DIA*1.2,$fn=FACETS);
+        //cylinder(h=8,d=LUG_DIA,center=true,$fn=FACETS);
+        //rotate([90,0,90]) translate([0,1,3]) switch(true,$fn=FACETS);
+        cylinder(h=60,d=SCREW_DIA*.92,center=true,$fn=FACETS);
+        translate([0,0,-15]) cylinder(h=10,d=SCREW_DIA*2.5,center=true,$fn=FACETS);
+        translate([-26,0,0]) cube(40,center=true);
+        rotate([0,0,-90]) translate([0,0,-MAIN_LUG_THK]) 
+            roundTopLug(dia=LUG_DIA*1.02,hgt=LUG_DIA,thk=MAIN_LUG_THK,bore=0,$fn=FACETS);
     }
 }
-*rotate([180,0,0]) BC_Arm_Cap();  // Export as STL... F7 (quantity 1)
+*rotate([0,-90,0]) BC_Arm_Cap();  // Export as STL... F7 (quantity 1)
 
 module BC_Assy() {
     // DRAW THE BC ARM 
     translate([0,0,-OUTER_LUG_THK]) BC_Arm(len=lenBC);
-    translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
+    //translate([lenBC+3,0,-4.5]) rotate([90,0,90]) switch($fn=FACETS); // switch
     translate([lenBC,0,-4]) rotate([180,0,0]) BC_Arm_Cap(); // for switch
-    translate([lenBC,0,2]) rotate([0,180,0]) Screw(length=10,dia=4); // Screw
+    translate([lenBC,0,5]) rotate([0,180,0]) Screw(length=10,dia=4); // Screw
 }
-*7BC_Assy();
+*BC_Assy();
 
 module Input_Arm_Assembly(B_angle = 0){
     // Display the Input Arm Assembly from the AB arm and on
@@ -315,16 +320,32 @@ module TA_Fitting() { // Complex part that connects Joint T to Joint A
     color("lime") {
         difference() {
             translate([0,0,2]) 
-                roundTopLug (dia=LUG_DIA,hgt=LUG_DIA/2,thk=MAIN_LUG_THK,bore=3,$fn=FACETS);
+                roundTopLug(dia=LUG_DIA,hgt=LUG_DIA/2,thk=MAIN_LUG_THK,bore=3,cyl=true,$fn=FACETS);
             // remove potentiometer interface
-            translate([0,0,-LUG_Z+2]) scale([1.02,1.02,1.02]) rotate([0,0,180]) 
+            translate([0,0,-LUG_Z+2]) scale([1.02,1.02,1.02]) rotate([0,0,90]) 
                 P090L_pot(negative=true);
+            // remove wire hole
+            rotate([0,0,0]) translate([0,0,15]) 
+                simpleTorus (bigR = FLAT_DIST, littleR = 5,$fn=FACETS); 
+
         }
 
-        translate([-1,0,A_joint_Z-MAIN_LUG_THK]) rotate([90,0,-90]) NonPotLug(); 
+        translate([-1,0,A_joint_Z-MAIN_LUG_THK]) 
+            rotate([90,0,-90]) 
+                NonPotLug($fn=FACETS); 
         
-        translate([LUG_DIA/2,-LUG_DIA+3,20.5/2+2]) rotate([0,90,180]) 
-            roundTopLugTwo (width=20.5,rad=3,hgt=8,thk=LUG_DIA,bore=0,$fn=FACETS);
+        difference() {
+            translate([LUG_DIA/2,-LUG_DIA+2,17/2+2]) rotate([0,90,180]) 
+                roundTopLugTwo(width=17,rad=3,hgt=9,thk=LUG_DIA,bore=0,$fn=FACETS);
+            
+            // remove wire hole
+            translate([0,0,12])  rotate([0,15,0]) 
+                simpleTorus (bigR = FLAT_DIST*1.17, littleR = 2.5,$fn=FACETS); 
+            
+            // lug cylinder
+            translate([0,0,8]) cylinder(h=MAIN_LUG_THK*1.01,d=LUG_DIA*1.05,$fn=FACETS);
+
+        };
     }
 }
 *rotate([0,-90,0]) TA_Fitting(); // Export as STL... F7 (quantity 1)
@@ -338,14 +359,72 @@ module TA_assy() {
         translate([0,0,-OUTER_LUG_THK]) PotCoverAssy();
     }
 }
+*TA_assy();
+
+module BaseLug(dia=LUG_DIA) {  // Model of Potentiometer holder
+    color("orange") 
+    difference () {// Side that holds the POT
+        washer(d=dia,t=POT_LUG_THK,d_pin=POT_HOLE_DIA,center=false,$fn=FACETS);
+        //roundTopLug(dia=dia,hgt=FLAT_DIST,thk=POT_LUG_THK,bore=POT_HOLE_DIA,$fn=FACETS);
+        // remove potentiometer interface
+        translate([0,0,zbody]) P090L_pot(negative=true);
+
+        // remove screw holes
+        rotate([0,0,90]) {
+            screwHoles(dia=LUG_DIA,shrink=true);  
+            translate([0,LUG_DIA/2.5,0]) 
+                cylinder(h=4*dia,d=2.5,center=true,$fn=FACETS);
+        };
+
+        // remove wire hole
+        rotate([0,0,0]) translate([3,0,4]) 
+            simpleTorus (bigR = FLAT_DIST*1.1, littleR = 3,$fn=FACETS); 
+
+    };
+}
+*rotate([0,180,0]) BaseLug(dia=LUG_DIA*1.5); // Export as STL... F7 (quantity 1)
+
+module BasePotCover() {
+    color("SlateBlue") 
+    difference () {// Side that holds the POT
+        washer(d=LUG_DIA*2.2,t=OUTER_LUG_THK,d_pin=3,center=false,$fn=FACETS);
+
+        // remove potentiometer interface
+        rotate([0,0,90]) translate([0,0,OUTER_LUG_THK+zbody]) P090L_pot(negative=false);
+        
+        screwHoles(dia=LUG_DIA);  // remove screw holes
+
+        translate([0,LUG_DIA/1.1,0])  
+            cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
+        translate([0,-LUG_DIA/1.1,0]) 
+            cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
+        translate([0,LUG_DIA/2.5,0])  
+            cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
+
+    }
+}
+*BasePotCover(); // Export as STL... F7 (quantity 1)
+
+module BasePotCoverAssy() {
+    BasePotCover();
+    ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
+    
+    translate([0,LUG_DIA/1.1,OUTER_LUG_THK]) rotate([0,180,0]) 
+        Screw(length=10,dia=4);
+    translate([0,-LUG_DIA/1.1,OUTER_LUG_THK]) rotate([0,180,0]) 
+        Screw(length=10,dia=4);
+    translate([0,LUG_DIA/2.5,0])
+        Screw(length=10,dia=4);
+
+}
 
 module base_assy(T_angle=0) {
     // Fixed part
-    rotate([0,0,180]) {
-        PotLug(); 
-        translate([0,0,zbody]) P090L_pot(negative=false); 
-        translate([0,0,POT_LUG_THK]) NonPotLug(); 
-        translate([0,0,-OUTER_LUG_THK]) BasePotCoverAssy();
+    rotate([0,0,0]) {
+        rotate([0,0,90]) BaseLug(dia=LUG_DIA*1.5); 
+        translate([0,0,zbody]) rotate([0,0,90]) P090L_pot(negative=false); 
+        rotate([0,0,180]) translate([0,0,POT_LUG_THK]) NonPotLug(); 
+        rotate([0,0,180]) translate([0,0,-OUTER_LUG_THK]) BasePotCoverAssy();
     }
     // Moving part
     rotate([0,0,T_angle]) {
