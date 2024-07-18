@@ -121,10 +121,10 @@ TT_BIG_GEAR = 80;
 TT_SMALL_GEAR = 32;
 
 // Representation of Base 2x4 wood
-LENGTH = 430;  // about 17 inches
-WIDTH = 233;   // Inside width
-WOOD_T = 3.0/mm_inch;  
-WOOD_W = 1.75/mm_inch;
+BASE_LEN = 430;  // about 17 inches
+BASE_WIDTH = 225;   // Inside width
+WOOD_T = 60; //3.0/mm_inch;  
+WOOD_W = 35; // 1.75/mm_inch;
 
 // Maximum Motor Torque (gram-mm) 
 BMotor_Max_Torque = 250000; 
@@ -173,6 +173,13 @@ module spring_combo() {
         torsion_spring_make3();
     }
 }
+module servo_mount_holes() {
+    translate([0,0,-12]) rotate([90,0,0]) {
+        hole_pair (x = 22,y=15,d=3.3,h=40,$fn=FACETS);
+        hole_pair (x = -43,y=15,d=3.3,h=40,$fn=FACETS);
+    }
+}
+*servo_mount_holes();
 
 module servo_mount(FT6335=true) {
     // servo mount is designed around servo with zero transformations.
@@ -194,13 +201,10 @@ module servo_mount(FT6335=true) {
             translate([-xshift-1,0,-5])
                 cube([svo_flange_l,svo_w,11],center=true);
             
-        }
-            translate([0,0,-12]) rotate([90,0,0]) {
-                hole_pair (x = 22,y=15,d=3.3,h=40,$fn=FACETS);
-                hole_pair (x = -43,y=15,d=3.3,h=40,$fn=FACETS);
             }
+        servo_mount_holes();
         }
-    }
+}
 
 *servo_mount(); // EXPORT AS STL, quantity 2
 
@@ -298,7 +302,7 @@ module A_gear_lollypop(teeth=10,gear_side=true) {
 *rotate([0,180,0]) A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true); // EXPORT AS STL, quantity 1
 *A_gear_lollypop(teeth=big_gear_teeth,gear_side=false); // EXPORT AS STL, quantity 1
 
-module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10) {
+module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10,holesOnly=false) {
     // Locate servo block assembly so that it interfaces with
     // big_gear_teeth located at 0,0,  on a beam of width wbeam,
     // using a small_gear_teeth on the servo
@@ -317,10 +321,15 @@ module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10) {
         svoCtrAxial=(big_gear_rad+small_gear_rad)*cos(svoAng);
     
         translate([-svoCtrAxial,svoCtrLateral,0]) {
-            servo_mount();
-            servo_body();  // servo
-            // turn off for thingiverse, purchased part
-            32P_Actobotics(teeth=small_gear_teeth);   // servo gear 32 tooth
+            if(!holesOnly) {
+                servo_mount();
+                servo_body();  // servo
+                // turn off for thingiverse, purchased part
+                32P_Actobotics(teeth=small_gear_teeth);   
+                // servo gear 32 tooth
+            } else {
+                servo_mount_holes();
+            }
         }   
     }
 }
@@ -433,7 +442,7 @@ module TA_assy() { // Assy between Turntable and joint A
     
     rotate([-90,0,0]) translate([0,0,z_offset+5]) half_inch_hex_hub();
 }
-*TA_assy();
+*rotate([90,0,0]) TA_assy();
 
 function get_CX (a) = (cos(a[0])*LEN_AB+cos(a[0]+a[1])*LEN_BC);
 function get_CY (a) = (sin(a[0])*LEN_AB+sin(a[0]+a[1])*LEN_BC);
@@ -573,31 +582,105 @@ module Electronics_Board (Assy=true) {
 
 base_t = 0;   //  was 10 for old design
 
+CENTER_Y_SHIFT = 30;
+
+module BASE_SUPT_BEAM(Yshift = 0) {
+    // ROBOT ARM SUPPORT BEAM
+    T_FLANGE = 4;
+    CORNER = 6;
+    MAX_W = 248;  // bed size is 250 mm
+
+    color("chocolate") 
+    difference() {   
+        translate([Yshift,0,0]) 
+        union() {
+            cube([BASE_WIDTH,WOOD_T,WOOD_W],center=true);
+            
+            // The following 10ish lines are for the top flange
+            difference() {
+                translate([0,0,WOOD_W/2-T_FLANGE/2])
+                    rounded_cube([MAX_W,WOOD_T,T_FLANGE],r=6,center=true,$fn=FACETS);
+                
+                hole_pair (x = MAX_W/2-CORNER,y=WOOD_T-CORNER*2,d=3.5,h=40,$fn=FACETS);
+                translate([-MAX_W+2*CORNER,0,0])
+                hole_pair (x = MAX_W/2-CORNER,y=WOOD_T-CORNER*2,d=3.5,h=40,$fn=FACETS);
+            }
+            
+            // corner fillets for the top flange
+            translate([BASE_WIDTH/2,0,WOOD_W/2-T_FLANGE]) rotate([0,45,0])
+                cube([2,WOOD_T,2],center=true);
+            translate([-BASE_WIDTH/2,0,WOOD_W/2-T_FLANGE]) rotate([0,45,0])
+                cube([2,WOOD_T,2],center=true);
+            
+            // lower flanges, for attachments
+            translate([BASE_WIDTH/2-T_FLANGE/2,0,-WOOD_W/2-CORNER])
+                cube([T_FLANGE,WOOD_T,2*CORNER],center=true);
+            translate([-BASE_WIDTH/2+T_FLANGE/2,0,-WOOD_W/2-CORNER])
+                cube([T_FLANGE,WOOD_T,2*CORNER],center=true);
+            // corner fillets for the lower flange
+            translate([BASE_WIDTH/2-T_FLANGE,0,-WOOD_W/2]) rotate([0,45,0])
+                cube([2,WOOD_T,2],center=true);
+            translate([-BASE_WIDTH/2+T_FLANGE,0,-WOOD_W/2]) rotate([0,45,0])
+                cube([2,WOOD_T,2],center=true);
+
+        }
+        // remove holes for lower flanges
+        translate([0,0,0]) rotate([0,90,0])
+            hole_pair (x = WOOD_W/2+CORNER,y=WOOD_T-CORNER*2,d=3.5,h=400,$fn=FACETS);
+        
+        // T bore for hex shaft bearings
+        cylinder(h=100,d=Half_bearing_od,center=true,$fn=FACETS);
+        
+        // counterbore for lower bearing, to move the big gear up
+        translate([0,0,-WOOD_W/2]) 
+            cylinder(h=10,d=Half_bearing_flange_od*1.1,center=true,$fn=FACETS);
+        
+        // remove the holes for the servo block
+        translate([0,-70,WOOD_W*.19])  // WHY the funky scaler??
+        geared_svo_block_assy(big_gear_teeth=TT_BIG_GEAR,small_gear_teeth=TT_SMALL_GEAR,wbeam=WOOD_T,holesOnly=true);
+
+    }
+    
+};
+*rotate([180,0,0]) // for printing
+BASE_SUPT_BEAM(Yshift=CENTER_Y_SHIFT);
+
+module BASE_SUPT_BEAM_ASSY() {
+    translate([0,0,-WOOD_W/2]) 
+        rotate([0,0,90]) 
+            BASE_SUPT_BEAM(Yshift=CENTER_Y_SHIFT);
+    
+    translate([0,0,-WOOD_W]) 
+    rotate([180,0,90]) 
+        geared_svo_block_assy(big_gear_teeth=TT_BIG_GEAR,small_gear_teeth=TT_SMALL_GEAR,wbeam=WOOD_T);
+    
+    Bearing_Flanged (t=Half_bearing_t, flange_t=Half_bearing_flange_t,od=Half_bearing_od,id=Half_bearing_id,flange_od=Half_bearing_flange_od);
+
+    translate([0,0,-WOOD_W+5]) rotate([180,0,0]) Bearing_Flanged (t=Half_bearing_t, flange_t=Half_bearing_flange_t,od=Half_bearing_od,id=Half_bearing_id,flange_od=Half_bearing_flange_od);
+
+    // Representation of electronics board
+    translate([WOOD_T/2+4,20,-20]) rotate([90,0,90]) Electronics_Board();
+
+};
+*BASE_SUPT_BEAM_ASSY();
+
 module new_base_assy() {
     // 2x4 dims
     T2X4 = 3.5/mm_inch;
     W2X4 = 1.5/mm_inch;
-
-    translate([0,0,-WOOD_W]) rotate([180,0,90]) 
-        geared_svo_block_assy(big_gear_teeth=TT_BIG_GEAR,small_gear_teeth=TT_SMALL_GEAR,wbeam=WOOD_T*2/3);
     
     color("Khaki") {
-        translate([-T2X4/2,WIDTH/2,-base_t/2]) rotate([0,90,0]) cube([T2X4,W2X4,LENGTH]);
-        translate([-T2X4/2,-WIDTH/2-W2X4,-base_t/2]) rotate([0,90,0]) cube([T2X4,W2X4,LENGTH]);
-        // BACK BEAM
-        translate([LENGTH-T2X4/2,-WIDTH/2,-base_t/2]) rotate([0,90,90]) cube([T2X4,W2X4,WIDTH]);
+        translate([-T2X4/2,BASE_WIDTH/2+CENTER_Y_SHIFT,-base_t/2]) 
+            rotate([0,90,0]) cube([T2X4,W2X4,BASE_LEN]);
+        translate([-T2X4/2,-BASE_WIDTH/2-W2X4+CENTER_Y_SHIFT,-base_t/2]) 
+            rotate([0,90,0]) cube([T2X4,W2X4,BASE_LEN]);
+        // Back 2x4
+        translate([BASE_LEN-T2X4/2,-BASE_WIDTH/2+CENTER_Y_SHIFT,-base_t/2]) 
+            rotate([0,90,90]) cube([T2X4,W2X4,BASE_WIDTH]);
     }
-    color("burlywood") {    
-        // ROBOT ARM SUPPORT BEAM
-        translate([-WOOD_T*2/3,-WIDTH/2,-base_t/2]) rotate([-90,0,0]) cube([WOOD_T,WOOD_W,WIDTH]);
-    }
-    
-    Bearing_Flanged (t=Half_bearing_t, flange_t=Half_bearing_flange_t,od=Half_bearing_od,id=Half_bearing_id,flange_od=Half_bearing_flange_od);
-
-    translate([0,0,-WOOD_W]) rotate([180,0,0]) Bearing_Flanged (t=Half_bearing_t, flange_t=Half_bearing_flange_t,od=Half_bearing_od,id=Half_bearing_id,flange_od=Half_bearing_flange_od);
-    
-    // Representation of electronics board
-    translate([0,100,0]) rotate([180,0,0]) Electronics_Board();
+    // ROBOT ARM SUPPORT BEAM
+    BASE_SUPT_BEAM_ASSY();
+       
 }
 *new_base_assy(); // not for print
 

@@ -156,6 +156,10 @@ module NonPotLug(thk=OUTER_LUG_THK) {  // Model of Potentiometer holder
         
         // remove spring wave washer dish
         cylinder(h=MAIN_LUG_THK+.6,d=9.1,center=false,$fn=FACETS);
+        
+        // remove corner for BC arm motion
+        translate([LUG_DIA/2,-LUG_DIA/2,-.2]) rotate([0,0,45])
+            cube([6,6,MAIN_LUG_THK+.4],center=false);
     }
 }
 *rotate([0,180,0]) NonPotLug(); // Export as STL... F7 (quantity 2)
@@ -170,7 +174,7 @@ module PotCover() {
         // remove potentiometer interface
         translate([0,0,OUTER_LUG_THK+zbody]) P090L_pot(negative=false);
         screwHoles(dia=LUG_DIA);  // remove screw holes
-        translate([0,-FLAT_DIST,0]) cube([LUG_DIA/2.6,10,10],center=true);
+        translate([0,-FLAT_DIST+2,0]) cube([LUG_DIA/2.6,10,10],center=true);
     }
 }
 *PotCover(); // Export as STL... F7 (quantity 2)
@@ -333,14 +337,20 @@ module TA_Fitting() { // Complex part that connects Joint T to Joint A
         translate([-1,0,A_joint_Z-MAIN_LUG_THK]) 
             rotate([90,0,-90]) 
                 NonPotLug($fn=FACETS); 
+        // add gusset for strength
+        translate([-LUG_DIA/2,-14.5,15.5]) rotate([45,0,0]) 
+            cube([OUTER_LUG_THK-0.2,10,4.5]);
         
         difference() {
             translate([LUG_DIA/2,-LUG_DIA+2,17/2+2]) rotate([0,90,180]) 
                 roundTopLugTwo(width=17,rad=3,hgt=9,thk=LUG_DIA,bore=0,$fn=FACETS);
             
-            // remove wire hole
-            translate([0,0,12])  rotate([0,15,0]) 
-                simpleTorus (bigR = FLAT_DIST*1.17, littleR = 2.5,$fn=FACETS); 
+            // remove wire torus
+            translate([0,0,6.5])  rotate([0,30,0]) 
+                simpleTorus (bigR = FLAT_DIST*1.21, littleR = 2.5,$fn=FACETS); 
+            
+            // remove wire cylinder
+            translate([7,-17,0]) cylinder(h=50,d=6,center=true,$fn=FACETS);
             
             // lug cylinder
             translate([0,0,8]) cylinder(h=MAIN_LUG_THK*1.01,d=LUG_DIA*1.05,$fn=FACETS);
@@ -348,7 +358,8 @@ module TA_Fitting() { // Complex part that connects Joint T to Joint A
         };
     }
 }
-*rotate([0,-90,0]) TA_Fitting(); // Export as STL... F7 (quantity 1)
+*rotate([0,-90,0]) 
+    TA_Fitting(); // Export as STL... F7 (quantity 1)
 
 module TA_assy() {
     TA_Fitting();
@@ -365,7 +376,6 @@ module BaseLug(dia=LUG_DIA) {  // Model of Potentiometer holder
     color("orange") 
     difference () {// Side that holds the POT
         washer(d=dia,t=POT_LUG_THK,d_pin=POT_HOLE_DIA,center=false,$fn=FACETS);
-        //roundTopLug(dia=dia,hgt=FLAT_DIST,thk=POT_LUG_THK,bore=POT_HOLE_DIA,$fn=FACETS);
         // remove potentiometer interface
         translate([0,0,zbody]) P090L_pot(negative=true);
 
@@ -375,32 +385,49 @@ module BaseLug(dia=LUG_DIA) {  // Model of Potentiometer holder
             translate([0,LUG_DIA/2.5,0]) 
                 cylinder(h=4*dia,d=2.5,center=true,$fn=FACETS);
         };
-
-        // remove wire hole
-        rotate([0,0,0]) translate([3,0,4]) 
-            simpleTorus (bigR = FLAT_DIST*1.1, littleR = 3,$fn=FACETS); 
+        // remove wire donut
+        translate([3,2,4]) 
+            simpleTorus (bigR = dia/1.8, littleR = 3.3,$fn=FACETS); 
 
     };
 }
-*rotate([0,180,0]) BaseLug(dia=LUG_DIA*1.5); // Export as STL... F7 (quantity 1)
+*rotate([0,180,0]) 
+    BaseLug(dia=LUG_DIA*1.5); // Export as STL... F7 (quantity 1)
 
 module BasePotCover() {
     color("SlateBlue") 
     difference () {// Side that holds the POT
-        washer(d=LUG_DIA*2.2,t=OUTER_LUG_THK,d_pin=3,center=false,$fn=FACETS);
+        translate([0,0,-OUTER_LUG_THK]) 
+            washer(d=LUG_DIA*2.2,t=2*OUTER_LUG_THK,d_pin=3,center=false,$fn=FACETS);
 
         // remove potentiometer interface
         rotate([0,0,90]) translate([0,0,OUTER_LUG_THK+zbody]) P090L_pot(negative=false);
         
         screwHoles(dia=LUG_DIA);  // remove screw holes
 
-        translate([0,LUG_DIA/1.1,0])  
+        rotate([0,0,90]) {
+            translate([0,LUG_DIA/1.03,0])  
+                cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
+            translate([0,-LUG_DIA/1.03,0]) 
+                cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
+        };
+        translate([0,LUG_DIA/2.5,0]) {
             cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
-        translate([0,-LUG_DIA/1.1,0]) 
-            cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
-        translate([0,LUG_DIA/2.5,0])  
-            cylinder(h=10,d=SCREW_DIA,center=true,$fn=FACETS);
-
+            translate([0,0,-2]) cylinder(h=7,d=SCREW_DIA*2.5,center=true,$fn=FACETS);
+        };
+        
+        // remove wire donut
+        translate([0,0,-4]) 
+            simpleTorus (bigR = FLAT_DIST*0.95, littleR = 5.8,$fn=FACETS); 
+        // remove window for t-pot wires
+        translate([-12,0,0]) cube([10,10,30],center=true);
+        // remove window for wire exit
+        translate([0,20,-3]) cube([20,10,10],center=true);
+        // remove window for wire entrance
+        rotate([0,0,60]) translate([0,-17,4]) rotate([0,-50,30]) 
+        cylinder(h=26,d=9,center=true,$fn=FACETS);
+        
+        translate([-5,20,0]) rotate([0,0,100]) zip_holes();
     }
 }
 *BasePotCover(); // Export as STL... F7 (quantity 1)
@@ -409,10 +436,12 @@ module BasePotCoverAssy() {
     BasePotCover();
     ScrewsInHoles(lug_dia=LUG_DIA,screw_dia=4,screw_len=19);
     
-    translate([0,LUG_DIA/1.1,OUTER_LUG_THK]) rotate([0,180,0]) 
+    rotate([0,0,90]) {
+        translate([0,LUG_DIA/1.03,OUTER_LUG_THK]) rotate([0,180,0]) 
         Screw(length=10,dia=4);
-    translate([0,-LUG_DIA/1.1,OUTER_LUG_THK]) rotate([0,180,0]) 
+    translate([0,-LUG_DIA/1.03,OUTER_LUG_THK]) rotate([0,180,0]) 
         Screw(length=10,dia=4);
+    };
     translate([0,LUG_DIA/2.5,0])
         Screw(length=10,dia=4);
 
@@ -423,8 +452,10 @@ module base_assy(T_angle=0) {
     rotate([0,0,0]) {
         rotate([0,0,90]) BaseLug(dia=LUG_DIA*1.5); 
         translate([0,0,zbody]) rotate([0,0,90]) P090L_pot(negative=false); 
-        rotate([0,0,180]) translate([0,0,POT_LUG_THK]) NonPotLug(); 
-        rotate([0,0,180]) translate([0,0,-OUTER_LUG_THK]) BasePotCoverAssy();
+        rotate([0,0,180]) translate([0,0,POT_LUG_THK]) 
+            NonPotLug(); 
+        rotate([0,0,180]) translate([0,0,-OUTER_LUG_THK]) 
+            BasePotCoverAssy();
     }
     // Moving part
     rotate([0,0,T_angle]) {
