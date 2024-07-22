@@ -424,7 +424,7 @@ float servo_map(joint & jt) { // Map current joint angle to the servo microsecon
 // Move Current toward Target at given RateLimit (no units)
 // Used in Teleoperated only
 float rateLimitMove(float Target, float Current, float RateLimit) { 
-  float delta, newV;
+  float delta, newV=0;
   delta = Target-Current;
   if (abs(delta) > abs(RateLimit)) { // rate limit the move
       if (delta > 0 ) { 
@@ -745,6 +745,7 @@ boolean runCommand(arm & the_arm, sequence  & the_seq, int idx) { // TRUE if DON
       return true;
       break;          
   } // end switch   
+  return false;
 }
 float getPA(pathAngles & the_path, int theAngle, float dist, float totalDist) { // get Path Angle
   // Get one angle (theAngle) from pathAngles array, at dist along path
@@ -1226,7 +1227,7 @@ void loop() {  //########### MAIN LOOP ############
       updateJointBySpeed(make3.jD, make3.dt);  
 
       // HARD LIMIT to keeps the claw from contacting BC arm
-      if (make3.current_pt.z > (LEN_AB+FLOOR) ) make3.jC.target_angle = (-90.0+ (make3.current_pt.z-(LEN_AB+FLOOR))/6.0)/RADIAN; 
+      if (make3.current_pt.z > (LEN_AB) ) make3.jC.target_angle = (-90.0+ 45.0*(make3.current_pt.z-(LEN_AB))/(LEN_BC-40))/RADIAN; 
       else make3.jC.target_angle = -90.0/RADIAN;
 
       break;
@@ -1235,7 +1236,7 @@ void loop() {  //########### MAIN LOOP ############
   }
 
   // FLOOR HARD LIMITS
-  if (make3.current_pt.z < (FLOOR) ) make3.current_pt.z = FLOOR;  // this keeps the arm from doing a pushup
+  if (make3.current_pt.z < (FLOOR+15) ) make3.current_pt.z = FLOOR+15;  // this keeps the arm from doing a pushup
   
   //  Serial Output for Initial Calibration.  One line for each servo.  Turn on one at a time:
   //logData(make3.jA,'A');  // Use logData for Initial Calibration of Potentiometer and Servo A
