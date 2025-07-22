@@ -538,14 +538,14 @@ void logGeneral() { // use for general debugging
   Serial.print(make3.state);
   Serial.print(",armMODE,");
   Serial.print(make3.mode);
-  Serial.print(",LOOP,");
-  Serial.print(make3.loopCount);
-  Serial.print(",cmdNo=");
-  Serial.print(make3.n);
-  if (make3.n < seQ.nuHm_cmds) {
-    Serial.print(",arg[0]=");
-    Serial.print(seQ.cmd[make3.n].arg[0]);          
-  }
+  // Serial.print(",LOOP,");
+  // Serial.print(make3.loopCount);
+  // Serial.print(",cmdNo=");
+  // Serial.print(make3.n);
+  // if (make3.n < seQ.nuHm_cmds) {
+  //   Serial.print(",arg[0]=");
+  //   Serial.print(seQ.cmd[make3.n].arg[0]);          
+  // }
   Serial.print(",clawSwitch,");
   Serial.print(clawSwitch.isOn);
   //Serial.print(",lineLen,");
@@ -1243,7 +1243,7 @@ void loop() {  //########### MAIN LOOP ############
 
   // Serial Output  for debugging:
   //logPoint(make3);  // Use for debugging paths
-  //logGeneral();  // Use for general debugging
+  logGeneral();  // Use for general debugging
 
   blink();  // blinks the led on the arduino board
 
