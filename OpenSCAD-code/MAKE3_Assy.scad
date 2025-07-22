@@ -12,7 +12,7 @@ use <Claw_Assembly.scad>
 DISPLAY_ASSY = true;  // set this to false when exporting STL files
 
 // Boolean for Animation related features
-ANIMATION_ON = true;
+ANIMATION_ON = false;
 /* Animation Commands to create an orbital fly-around:
 // view point rotation (spins the part)
 // view point translation
@@ -299,8 +299,10 @@ module A_gear_lollypop(teeth=10,gear_side=true) {
         }
     }
 }
-*rotate([0,180,0]) A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true); // EXPORT AS STL, quantity 1
-*A_gear_lollypop(teeth=big_gear_teeth,gear_side=false); // EXPORT AS STL, quantity 1
+// A gear lollypop with teeth
+rotate([0,180,0]) A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=true); // EXPORT AS STL, quantity 1
+// A gear lollypop no teeth
+*A_gear_lollypop(teeth=Abig_gear_teeth,gear_side=false); // EXPORT AS STL, quantity 1
 
 module geared_svo_block_assy(big_gear_teeth=60,small_gear_teeth=32,wbeam=10,holesOnly=false) {
     // Locate servo block assembly so that it interfaces with

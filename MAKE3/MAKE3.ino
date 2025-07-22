@@ -129,7 +129,7 @@ struct arm {  // as in Robot Arm
   joint jT;
 };
 
-struct command {int arg[SIZE_CMD_ARRAY];};
+struct command {unsigned long arg[SIZE_CMD_ARRAY];}; // was int
 
 struct sequence {  // An array of commands
   int nuHm_cmds;
@@ -153,17 +153,17 @@ joint jS;  // selector pot
 digiSwitchStruct clawSwitch;  // holds data for the claw push button switch
 pathAngles pathA; // for storing pre-computed servo angles
 
-sequence seQ = {12,{{0,0,0,0,0},
-                {0,0,0,0,0}, 
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
-                {0,0,0,0,0},
+sequence seQ = {2,{{0,0,0,0,0},
+//                {0,0,0,0,0}, 
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
+//                {0,0,0,0,0},
                 {0,0,0,0,0}}}; 
                            
 // called this way, it uses the default address 0x40
@@ -229,15 +229,11 @@ void initSwitch(digiSwitchStruct & theSwitch,int pin, int delay) {
 
 void checkSwitch(digiSwitchStruct & theSwitch) { // checks if the switch has been pressed and sets isOn variable
   int reading = digitalRead(theSwitch.inputPin);
-  if (theSwitch.timerStart > 0) { // > 0 means that the timer is running
-    int deltaTime = millis() - theSwitch.timerStart;
-    if (deltaTime > theSwitch.delayMS) theSwitch.timerStart = 0;  // timer is done, reset
-  } else if (reading == 0) { // check is switch has toggled
+  int deltaTime = millis() - theSwitch.timerStart;
+  if ((reading == 0) && (deltaTime > theSwitch.delayMS)) { // check is switch has toggled
     theSwitch.isOn = !theSwitch.isOn;
-    theSwitch.timerStart = millis();
-    delay(2);  // just in case the loop is really fast
+    theSwitch.timerStart = millis(); // timer is done, reset
   }
-
 }
 
 float getCang(float a_angle, float b_angle, float fixed_c_angle) { // returns joint angle C, using A and B
@@ -589,7 +585,7 @@ boolean runCommand(arm & the_arm, sequence  & the_seq, int idx) { // TRUE if DON
     case K_ORBIT_Z:  // point G orbits in an xy plane, a point on xz plane
       if (the_arm.initialize) {  
         the_arm.feedRate = (float)the_cmd.arg[1];  // FIRST ARG is mm per sec
-        center = {the_cmd.arg[2],0.0,the_arm.target_pt.z};  // SECOND ARG is the X center of orbit
+        center = {(float)the_cmd.arg[2],0.0,the_arm.target_pt.z};  // SECOND ARG is the X center of orbit
         rad = (float)the_cmd.arg[3];  // THIRD ARG is RADIUS, between ~10 and 1000 mm
         sweep = (float)the_cmd.arg[4]; // FOURTH ARG is SWEEP ANGLE, between 90 and 270, or -90 to -270 degrees
         final_g = path_orbit_xy(pathA,center,rad,sweep);  // Build the orbit path
@@ -619,7 +615,7 @@ boolean runCommand(arm & the_arm, sequence  & the_seq, int idx) { // TRUE if DON
     case K_LINE_G:  // pt to pt line of POINT G.  Set aim point with AIM command, PRIOR to this command.
       if (the_arm.initialize) {  
         the_arm.feedRate = (float)the_cmd.arg[1];
-        final_g = {the_cmd.arg[2],the_cmd.arg[3],the_cmd.arg[4]};  // final_g is the final point
+        final_g = {(float)the_cmd.arg[2],(float)the_cmd.arg[3],(float)the_cmd.arg[4]};  // final_g is the final point
         the_arm.line_len = ptpt_dist(the_arm.current_pt,final_g);  // store the length of the move
         if (the_arm.line_len > ZERO_DIST) { // move required
           // Build the path. Stored in global pathA

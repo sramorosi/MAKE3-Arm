@@ -253,10 +253,10 @@ module force_arrow(from=[1,1,0],vec=[1,0,0],mag=10) {
                 cylinder(d*.2,0,d*.1,false);
             }
         } else {
-            echo("MODULE FORCE_ARROW; small mag = ",mag);
+            //echo("MODULE FORCE_ARROW; small mag = ",mag);
     }
     } else {
-        echo("MODULE FORCE_ARROW; vec too small = ",vec);
+        //echo("MODULE FORCE_ARROW; vec too small = ",vec);
     }
 }
 module torque_arrow(to=[10,4,0],mag=10) {
@@ -287,7 +287,7 @@ module torque_arrow(to=[10,4,0],mag=10) {
             cylinder(d*.2,0,d*.1,false);
         }
     } else {
-        echo("MODULE TORQUE_ARROW; small mag = ",mag);
+        //echo("MODULE TORQUE_ARROW; small mag = ",mag);
     }
 }
 
