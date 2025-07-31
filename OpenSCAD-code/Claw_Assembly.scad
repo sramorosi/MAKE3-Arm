@@ -26,7 +26,7 @@ use <ME_lib.scad>  // Mechanical Engineering Library
 //$vpd = 140;         
 //
 // boolean to toggle assembly drawing
-DRAW_ASSY = true;
+DRAW_ASSY = false;
 // use 100 for printing, 40 for display
 FACETS = 100; // [40,100]
 // Distance Servo Axis is along X axis (mm) 
@@ -111,9 +111,9 @@ module guide() {  // BLOCK GUIDE
 
 module guide2() {  // BLOCK GUIDE
     HALFARM = 35;  // half arm length
-    GUAGE = 2.5;  // guide guage
+    GUAGE = 2.7;  // guide guage
     FINGLEN = 22; // finger length
-    FINGW = 13; // finger width
+    FINGW = 12.5; // finger width
     FINGT = 1.2;  // finger thickness
     color("Silver") {
         difference() {
@@ -145,16 +145,17 @@ module guide2() {  // BLOCK GUIDE
         polygon([[0,0],
         [0,0.1+BAR_HGT/2],
         [-BAR_THK-0.1,0.1+BAR_HGT/2],
-        [-BAR_THK-0.1,BAR_HGT/2.8],
-        [-1.5*BAR_THK,BAR_HGT/2.3],
+        [-BAR_THK-0.1,BAR_HGT/2.5],
+        [-1.5*BAR_THK,BAR_HGT/1.75],
         [-1.5*BAR_THK,BAR_HGT/1.7],
-        [-2,BAR_HGT/1.3],
+        [-1.5,BAR_HGT/1.7],
+        [0,BAR_HGT/1.5],
         [0,HALFARM],
         [GUAGE,HALFARM],
         [GUAGE,0]]);
     };
 }
-*guide2(); // Export as STL (quantity 2)
+guide2(); // Export as STL (quantity 2)
 
 module claw_bar(L=100,L_ROD=20) {
     color("SkyBlue") difference() { // subtract pin holes from polygon
